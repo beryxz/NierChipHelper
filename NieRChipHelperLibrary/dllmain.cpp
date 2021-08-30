@@ -1,13 +1,45 @@
 ﻿#include "pch.h"
 
 #include <Windows.h>
+#include "imgui.h"
 
 #include "Hook.h"
 #include "Nier.h"
 
-void customMenu() {
+bool g_bActivated = FALSE;
+
+void menu();
+void osd(ImDrawList* drawList);
+ 
+void customImguiDraw() {
+	auto bgDrawlist = ImGui::GetBackgroundDrawList();
+	
+	menu();
+
+	if (Nier::isOSDActive()) {
+		osd(bgDrawlist);
+	}
+}
+
+// On screen display for chips count
+void osd(ImDrawList* drawlist) {
+	char text[128];
+	sprintf_s(text, 128, "Total chips");
+
+	drawlist->AddText(ImVec2(10.0f, 10.0f), (ImU32)IM_COL32_BLACK, text);
+}
+
+void menu() {
 	ImGui::Text("%d/200 chips in inventory", Nier::dChipsCount);
-	ImGui::Text("in-game chip counter: %d", Nier::pChips->totChips);
+	if (Nier::pChips != nullptr)
+		ImGui::Text("in-game chip counter: %d", Nier::pChips->totChips);
+
+	ImGui::Text("[%c] Auto-delete new useless chips:", Nier::isAutoDeleteActive() ? 'X' : ' ');
+	ImGui::SameLine();
+	if (ImGui::Button("Toggle"))
+	{
+		Nier::toggleAutoDelete();
+	}
 
 	ImGuiTableFlags flags =
 		ImGuiTableFlags_RowBg |
@@ -41,12 +73,15 @@ void customMenu() {
 
 							switch (sort_spec->ColumnIndex)
 							{
-								// Name
-							case 0:		delta = (chipsTypeTable.at(a->type).name.compare(chipsTypeTable.at(b->type).name));	break;
-								// Level
-							case 1:		delta = (a->level - b->level);										break;
-								// Weight
-							case 2:		delta = (a->weight - b->weight);									break;
+							case 0: // Name
+								delta = (Nier::chipsTypeTable.at(a->type).name.compare(Nier::chipsTypeTable.at(b->type).name));
+								break;
+							case 1: // Level
+								delta = (a->level - b->level);
+								break;
+							case 2: // Weight
+								delta = (a->weight - b->weight);
+								break;
 							}
 
 							if (delta > 0)
@@ -76,8 +111,8 @@ void customMenu() {
 					ImGui::PushID(row);
 					ImGui::TableNextRow();
 
-					Nier::ChipLevel* cl = &chipsLevelsTable[c->level];
-					Nier::ChipType* ct = &chipsTypeTable.at(c->type);
+					const Nier::ChipLevel* cl = &Nier::chipsLevelsTable.at(c->level);
+					const Nier::ChipType* ct = &Nier::chipsTypeTable.at(c->type);
 
 					// Set color based on chip category
 					ImU32 row_bg_color = NULL;
@@ -154,10 +189,10 @@ DWORD WINAPI mainThread(HMODULE hModule)
 	
 	std::cout << "[*] Main thread started" << std::endl;
 
-	uintptr_t baseAddress = (uintptr_t)GetModuleHandle(L"NieRAutomata.exe");
-	std::cout << "[*] Base address: " << baseAddress << '\n';
+	Nier::moduleBaseAddress = (uintptr_t)GetModuleHandle(L"NieRAutomata.exe");
+	std::cout << "[*] NieRAutomata.exe base: " << std::hex << Nier::moduleBaseAddress << std::endl;
+	Nier::pChips = (Chips*)(Nier::moduleBaseAddress + 0xF5D0C0);
 
-	Nier::pChips = (Chips*)(baseAddress + 0xF5D0C0);
 	Nier::updateChipsListAndCount();
 
 	// Main loop
@@ -165,7 +200,7 @@ DWORD WINAPI mainThread(HMODULE hModule)
 	{
 		// If number of chips changed, update the local chips array copy
 		// if totChips == 0, gamesave has not been loaded yet.
-		if (Nier::pChips->totChips != 0 && Nier::dChipsCount != Nier::pChips->totChips) {
+		if (Nier::pChips && Nier::pChips->totChips != 0 && Nier::dChipsCount != Nier::pChips->totChips) {
 			Nier::updateChipsListAndCount();
 		}
 
@@ -176,6 +211,7 @@ DWORD WINAPI mainThread(HMODULE hModule)
 		Sleep(5);
 	}
 
+	Nier::clearForExit();
 	delete hook;
 	FreeLibraryAndExitThread(hModule, 0);
 
@@ -196,4 +232,3 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
     }
     return TRUE;
 }
-

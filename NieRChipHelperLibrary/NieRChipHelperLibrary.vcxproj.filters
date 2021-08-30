@@ -28,6 +28,9 @@
     <Filter Include="d3d11">
       <UniqueIdentifier>{4227a016-8451-440e-95d2-df8fb60127b8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="asm">
+      <UniqueIdentifier>{cf612002-b076-4cc2-a62a-cf8afa380984}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -75,6 +78,9 @@
     <ClInclude Include="Nier.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Mem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -116,5 +122,13 @@
     <ClCompile Include="reclass.cpp">
       <Filter>reclass</Filter>
     </ClCompile>
+    <ClCompile Include="Mem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="autoDelete.asm">
+      <Filter>asm</Filter>
+    </MASM>
   </ItemGroup>
 </Project>

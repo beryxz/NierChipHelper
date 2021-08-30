@@ -4,6 +4,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "Mem.h"
+#include "detours.h"
 #include "reclass.h"
 
 class Nier
@@ -13,6 +15,8 @@ public:
 	static Chips* pChips; // pointer to chips counters and inventory location
 	static DWORD dChipsCount;
 	static std::array<Chip*, 300> chipsList; // Local copy of pointers to chips, used for sorting the list
+
+	static uintptr_t moduleBaseAddress;
 
 	enum ChipCategory {
 		CHIP_SYSTEM,  // #877E66 - 0.906 0.882 0.780
@@ -34,16 +38,23 @@ public:
 		int32_t diamondRank;
 	};
 
+	static const std::unordered_map<int, ChipLevel> chipsLevelsTable;
+	static const std::unordered_map<int, ChipType> chipsTypeTable;
+
 	static void updateChipsListAndCount();
+
+	static void toggleAutoDelete();
+	static BOOL isAutoDeleteActive();
+
+	static BOOL isOSDActive();
+
+	static void clearForExit();
 
 private:
 
+	static BOOL bAutoDelete;
+	static Mem::hook_t* autoDeleteHook;
+
+	static BOOL bOSD;
+
 };
-
-//TODO: Remove from global scope
-// <chipLevel, maxWorthRank>
-extern std::unordered_map<int, Nier::ChipLevel> chipsLevelsTable;
-
-//TODO: Remove from global scope
-// <chipType, chipName>
-extern std::unordered_map<int, Nier::ChipType> chipsTypeTable;

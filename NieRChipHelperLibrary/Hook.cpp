@@ -15,7 +15,6 @@ BOOL g_ShowMenu = FALSE;
 HWND g_Hwnd = NULL;
 WNDPROC g_originalWndProcHandler = nullptr;
 
-void customMenu();
 
 Hook::~Hook()
 {
@@ -28,6 +27,7 @@ BOOL Hook::toggleConsole()
 	if (isConsoleActive)
 	{
 		if (fclose(fOutStream)) return FALSE;
+		if (fclose(fErrStream)) return FALSE;
 		if (!FreeConsole()) return FALSE;
 
 		isConsoleActive = FALSE;
@@ -37,6 +37,7 @@ BOOL Hook::toggleConsole()
 	{
 		if (!AllocConsole()) return FALSE;
 		if (freopen_s(&fOutStream, "CONOUT$", "w", stdout)) return FALSE;
+		if (freopen_s(&fErrStream, "CONOUT$", "w", stderr)) return FALSE;
 
 		isConsoleActive = TRUE;
 		return TRUE;
@@ -180,12 +181,12 @@ void Hook::getD3D11PresentAddr()
 	swapchain->Release();
 	devcon->Release();
 
-	std::cout << "[+] Present Addr:" << g_pHookD3D11Present << std::endl;
+	std::cout << "[*] Present address: " << std::hex << g_pHookD3D11Present << std::endl;
 }
 
 void Hook::detourDirectX()
 {
-	std::cout << "[+] Adding DirectX Detour" << std::endl;
+	std::cout << "[*] Adding DirectX Detour" << std::endl;
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
 	// Detours the original fnIDXGISwapChainPresent with our Present
@@ -197,7 +198,7 @@ void Hook::detourDirectX()
 HRESULT __fastcall Hook::Present(IDXGISwapChain* pChain, UINT SyncInterval, UINT Flags)
 {
 	if (!g_bInitialized) {
-		std::cout << "\t[+] Present Hook called by first time" << std::endl;
+		std::cout << "[*] Present Hook called by first time" << std::endl;
 		if (FAILED(Hook::GetDeviceAndCtxFromSwapchain(pChain, &g_pDevice, &g_pContext)))
 			return g_pHookD3D11Present(pChain, SyncInterval, Flags);
 		g_pSwapChain = pChain;
@@ -230,7 +231,7 @@ HRESULT __fastcall Hook::Present(IDXGISwapChain* pChain, UINT SyncInterval, UINT
 	//Menu is displayed when g_ShowMenu is TRUE
 	if (g_ShowMenu)
 	{
-		customMenu();
+		customImguiDraw();
 	}
 	ImGui::EndFrame();
 

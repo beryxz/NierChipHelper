@@ -34,7 +34,7 @@ extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam
 typedef HRESULT(__stdcall* D3D11PresentHook) (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags);
 
 // Dear ImGui
-void customMenu();
+void customImguiDraw();
 
 
 extern ID3D11Device* g_pDevice;
@@ -70,9 +70,11 @@ public:
 	static LRESULT CALLBACK hWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	static HRESULT __fastcall Present(IDXGISwapChain* pChain, UINT SyncInterval, UINT Flags);
 
+
 private:
 	BOOL isConsoleActive = FALSE;
 	FILE* fOutStream = nullptr;
+	FILE* fErrStream = nullptr;
 
 	BOOL bPresentHooked = FALSE;
 

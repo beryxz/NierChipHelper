@@ -1,13 +1,24 @@
 #include "pch.h"
 #include "Nier.h"
 
+extern "C" LPVOID AUTODELETE();
+extern "C" LPVOID AUTODELETE_SKIP;
+LPVOID AUTODELETE_SKIP = (LPVOID)((uintptr_t)GetModuleHandle(L"NieRAutomata.exe") + 0x7CB47E);
+extern "C" LPVOID AUTODELETE_JUMPBACK;
+LPVOID AUTODELETE_JUMPBACK = (LPVOID)((uintptr_t)GetModuleHandle(L"NieRAutomata.exe") + 0x7CB388);
+
 Chips* Nier::pChips = nullptr; // pointer to chips counters and inventory location
 DWORD Nier::dChipsCount = 0;
 std::array<Chip*, 300> Nier::chipsList{}; // Local copy of pointers to chips, used for sorting the list
 
-//TODO: Remove from global scope
-// <chipLevel, maxWorthRank>
-std::unordered_map<int, Nier::ChipLevel> chipsLevelsTable = {
+uintptr_t Nier::moduleBaseAddress;
+
+BOOL Nier::bAutoDelete = FALSE;
+Mem::hook_t* Nier::autoDeleteHook;
+
+BOOL Nier::bOSD = TRUE;
+
+const std::unordered_map<int, Nier::ChipLevel> Nier::chipsLevelsTable = {
 	{ 0, { 0,	 6,	 4 } },
 	{ 1, { 1,	 7,	 5 } },
 	{ 2, { 2,	 8,	 6 } },
@@ -18,9 +29,7 @@ std::unordered_map<int, Nier::ChipLevel> chipsLevelsTable = {
 	{ 7, { 7,	19,	17 } }
 };
 
-//TODO: Remove from global scope
-// <chipType, chipName>
-std::unordered_map<int, Nier::ChipType> chipsTypeTable = {
+const std::unordered_map<int, Nier::ChipType> Nier::chipsTypeTable = {
 	{ 0x01, { 0x01, "Weapon Attack Up",		Nier::CHIP_ATTACK	} },
 	{ 0x02, { 0x02, "Down-Attack Up",		Nier::CHIP_ATTACK	} },
 	{ 0x03, { 0x03, "Critical Up",			Nier::CHIP_ATTACK	} },
@@ -79,15 +88,50 @@ std::unordered_map<int, Nier::ChipType> chipsTypeTable = {
 };
 
 void Nier::updateChipsListAndCount() {
-	dChipsCount = 0;
-	chipsList = {};
-	Chip* c;
-	for (int row = 0, i = 0; row < 300; row++) {
-		c = &pChips->pInventory->chips[row];
-		if (c->baseId != -1 && c->alwaysZero == 0)
+	if (pChips != nullptr)
+	{
+		dChipsCount = 0;
+		chipsList = {};
+		Chip* c;
+		for (int row = 0, i = 0; row < 300; row++)
 		{
-			chipsList[i++] = c;
-			dChipsCount++;
+			c = &pChips->pInventory->chips[row];
+			if (c->baseId != -1 && c->alwaysZero == 0)
+			{
+				chipsList[i++] = c;
+				dChipsCount++;
+			}
 		}
 	}
+}
+
+void Nier::toggleAutoDelete()
+{
+	bAutoDelete = !bAutoDelete;
+
+	if (bAutoDelete)
+	{
+		Nier::autoDeleteHook = new Mem::hook_t;
+		Mem::detour64((uintptr_t)(Nier::moduleBaseAddress + 0x7CB382), AUTODELETE, 6, Nier::autoDeleteHook);
+	}
+	else
+	{
+		Mem::patch(Nier::autoDeleteHook->pHookedAddr, Nier::autoDeleteHook->pOriginalBytes, Nier::autoDeleteHook->len);
+		delete Nier::autoDeleteHook;
+	}
+}
+
+BOOL Nier::isAutoDeleteActive()
+{
+	return bAutoDelete;
+}
+
+BOOL Nier::isOSDActive()
+{
+	return bOSD;
+}
+
+void Nier::clearForExit()
+{
+	if (isAutoDeleteActive()) toggleAutoDelete();
 }
