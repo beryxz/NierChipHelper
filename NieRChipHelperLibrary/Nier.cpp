@@ -8,10 +8,13 @@ extern "C" LPVOID AUTODELETE_JUMPBACK;
 LPVOID AUTODELETE_JUMPBACK = (LPVOID)((uintptr_t)GetModuleHandle(L"NieRAutomata.exe") + 0x7CB388);
 
 Chips* Nier::pChips = nullptr; // pointer to chips counters and inventory location
-DWORD Nier::dChipsCount = 0;
+DWORD Nier::dChipsCount = 0; // This counter is auto updated to reflect the in-game one. It shouldn't be modified.
+
+BOOL Nier::isChipsListDirty = FALSE;
 std::array<Chip*, Nier::dMaxStorableChipCount> Nier::chipsList{}; // Local copy of pointers to chips, used for sorting the list
 
 uintptr_t Nier::moduleBaseAddress;
+void (*Nier::updateChipsCount)(void* pChipsBaseAddr);
 
 BOOL Nier::bAutoDelete = FALSE;
 Mem::hook_t* Nier::autoDeleteHook;
@@ -121,6 +124,22 @@ void Nier::toggleAutoDelete()
 		Mem::patch(Nier::autoDeleteHook->pHookedAddr, Nier::autoDeleteHook->pOriginalBytes, Nier::autoDeleteHook->len);
 		delete Nier::autoDeleteHook;
 	}
+}
+
+Nier::Nier()
+{
+	Nier::moduleBaseAddress = (uintptr_t)GetModuleHandle(L"NieRAutomata.exe");
+	std::cout << "[*] NieRAutomata.exe base: " << std::hex << Nier::moduleBaseAddress << std::endl;
+	
+	Nier::pChips = (Chips*)(Nier::moduleBaseAddress + 0xF5D0C0);
+	Nier::updateChipsCount = (void (*)(void *))(PVOID)(Nier::moduleBaseAddress + 0x7D5020);
+	
+	Nier::updateChipsListAndCount();
+}
+
+Nier::~Nier()
+{
+	clearForExit();
 }
 
 BOOL Nier::isAutoDeleteActive()

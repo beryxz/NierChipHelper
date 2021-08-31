@@ -15,6 +15,9 @@ class Nier
 {
 public:
 
+	Nier();
+	~Nier();
+
 	// The game internal logic support up to 300 chips.
 	// But in the latest game versions the actual max has been capped to 200.
 	// Therefore when reading to memory there are 300 indexes to check,
@@ -24,9 +27,14 @@ public:
 
 	static Chips* pChips; // pointer to chips counters and inventory location
 	static DWORD dChipsCount;
+
+	static BOOL isChipsListDirty;
 	static std::array<Chip*, dMaxStorableChipCount> chipsList; // Local copy of pointers to chips, used for sorting the list
 
 	static uintptr_t moduleBaseAddress;
+
+	// In-game function pointers
+	static void (*updateChipsCount)(void* pChipsBaseAddr);
 
 	enum ChipCategory {
 		CHIP_SYSTEM,  // #877E66 - 0.906 0.882 0.780

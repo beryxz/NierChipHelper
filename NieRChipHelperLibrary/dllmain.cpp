@@ -31,15 +31,12 @@ void osd(ImDrawList* drawlist) {
 	{
 		char text[128];
 		sprintf_s(text, 128, "Chips: %d/%d", Nier::dChipsCount, Nier::dMaxChipCount);
-
 		drawlist->AddText(Nier::osdFont, Nier::osdFontSize, ImVec2(5, 15), IM_COL32(120, 120, 120, 255), text);
 	}
 }
 
 void customImguiDrawMenu() {
 	ImGui::Text("%d/%d chips in inventory", Nier::dChipsCount, Nier::dMaxChipCount);
-	if (Nier::pChips != nullptr)
-		ImGui::Text("internal chip counter: %d", Nier::pChips->totChips);
 
 	ImGui::Text("[%c] Auto-delete new useless chips:", Nier::isAutoDeleteActive() ? 'X' : ' ');
 	ImGui::SameLine();
@@ -68,7 +65,7 @@ void customImguiDrawMenu() {
 		// Sort our data if sort specs have been changed!
 		__try {
 			if (ImGuiTableSortSpecs* sorts_specs = ImGui::TableGetSortSpecs()) {
-				if (sorts_specs->SpecsDirty)
+				if (sorts_specs->SpecsDirty || Nier::isChipsListDirty)
 				{
 					std::sort(Nier::chipsList.begin(), Nier::chipsList.begin() + Nier::dChipsCount, [sorts_specs](const Chip* a, const Chip* b) {
 						if (a == nullptr || b == nullptr) return false;
@@ -101,6 +98,7 @@ void customImguiDrawMenu() {
 						});
 
 					sorts_specs->SpecsDirty = false;
+					Nier::isChipsListDirty = FALSE;
 				}
 			}
 		}
@@ -170,8 +168,9 @@ void customImguiDrawMenu() {
 							break;
 						case 3:
 							if (ImGui::Button("Delete")) {
-								std::cout << "Deleting chip test\n";
 								c->clear();
+								Nier::updateChipsCount((PVOID)Nier::pChips);
+								Nier::isChipsListDirty = TRUE;
 							};
 							break;
 						}
@@ -196,11 +195,7 @@ DWORD WINAPI mainThread(HMODULE hModule)
 	
 	std::cout << "[*] Main thread started" << std::endl;
 
-	Nier::moduleBaseAddress = (uintptr_t)GetModuleHandle(L"NieRAutomata.exe");
-	Nier::pChips = (Chips*)(Nier::moduleBaseAddress + 0xF5D0C0);
-	std::cout << "[*] NieRAutomata.exe base: " << std::hex << Nier::moduleBaseAddress << std::endl;
-
-	Nier::updateChipsListAndCount();
+	Nier* nier = new Nier();
 
 	// Main loop
 	while (true)
@@ -218,7 +213,7 @@ DWORD WINAPI mainThread(HMODULE hModule)
 		Sleep(5);
 	}
 
-	Nier::clearForExit();
+	delete nier;
 	delete hook;
 	FreeLibraryAndExitThread(hModule, 0);
 
