@@ -4,17 +4,29 @@
 #include <string>
 #include <unordered_map>
 
+#include "imgui.h"
+
+#include "resource.h"
+
 #include "Mem.h"
 #include "detours.h"
 #include "reclass.h"
+
 
 class Nier
 {
 public:
 
+	// The game internal logic support up to 300 chips.
+	// But in the latest game versions the actual max has been capped to 200.
+	// Therefore when reading to memory there are 300 indexes to check,
+	// but only 200 of them can be used without chaning some internal functions.
+	static const DWORD dMaxChipCount = 200;
+	static const DWORD dMaxStorableChipCount = 300;
+
 	static Chips* pChips; // pointer to chips counters and inventory location
 	static DWORD dChipsCount;
-	static std::array<Chip*, 300> chipsList; // Local copy of pointers to chips, used for sorting the list
+	static std::array<Chip*, dMaxStorableChipCount> chipsList; // Local copy of pointers to chips, used for sorting the list
 
 	static uintptr_t moduleBaseAddress;
 
@@ -46,7 +58,11 @@ public:
 	static void toggleAutoDelete();
 	static BOOL isAutoDeleteActive();
 
+	// OSD (On screen display)
+	static ImFont* osdFont;
 	static BOOL isOSDActive();
+	static BOOL loadOSDFont(HMODULE hModule);
+	static const float osdFontSize;
 
 	static void clearForExit();
 

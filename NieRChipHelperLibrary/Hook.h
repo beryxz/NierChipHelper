@@ -34,7 +34,8 @@ extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam
 typedef HRESULT(__stdcall* D3D11PresentHook) (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags);
 
 // Dear ImGui
-void customImguiDraw();
+void customImguiDrawAlways();
+void customImguiDrawMenu();
 
 
 extern ID3D11Device* g_pDevice;

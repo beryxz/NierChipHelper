@@ -6,15 +6,10 @@
 #include "Hook.h"
 #include "Nier.h"
 
-bool g_bActivated = FALSE;
-
-void menu();
 void osd(ImDrawList* drawList);
  
-void customImguiDraw() {
+void customImguiDrawAlways() {
 	auto bgDrawlist = ImGui::GetBackgroundDrawList();
-	
-	menu();
 
 	if (Nier::isOSDActive()) {
 		osd(bgDrawlist);
@@ -23,16 +18,19 @@ void customImguiDraw() {
 
 // On screen display for chips count
 void osd(ImDrawList* drawlist) {
-	char text[128];
-	sprintf_s(text, 128, "Total chips");
+	if (Nier::osdFont != nullptr)
+	{
+		char text[128];
+		sprintf_s(text, 128, "Chips: %d/%d", Nier::dChipsCount, Nier::dMaxChipCount);
 
-	drawlist->AddText(ImVec2(10.0f, 10.0f), (ImU32)IM_COL32_BLACK, text);
+		drawlist->AddText(Nier::osdFont, Nier::osdFontSize, ImVec2(5, 15), IM_COL32(120, 120, 120, 255), text);
+	}
 }
 
-void menu() {
-	ImGui::Text("%d/200 chips in inventory", Nier::dChipsCount);
+void customImguiDrawMenu() {
+	ImGui::Text("%d/%d chips in inventory", Nier::dChipsCount, Nier::dMaxChipCount);
 	if (Nier::pChips != nullptr)
-		ImGui::Text("in-game chip counter: %d", Nier::pChips->totChips);
+		ImGui::Text("internal chip counter: %d", Nier::pChips->totChips);
 
 	ImGui::Text("[%c] Auto-delete new useless chips:", Nier::isAutoDeleteActive() ? 'X' : ' ');
 	ImGui::SameLine();
@@ -185,13 +183,22 @@ DWORD WINAPI mainThread(HMODULE hModule)
 {
 	Hook* hook = new Hook();
 	hook->toggleConsole();
-	hook->initialize();
+	__try
+	{
+		hook->initialize();
+	}
+	__except (filterException(GetExceptionCode(), GetExceptionInformation())) {
+		std::cout << "[!] Error: Initializing hook" << std::endl;
+	}
 	
 	std::cout << "[*] Main thread started" << std::endl;
 
+	std::cout << "[*] Loading custom fonts" << std::endl;
+	Nier::loadOSDFont(hModule);
+
 	Nier::moduleBaseAddress = (uintptr_t)GetModuleHandle(L"NieRAutomata.exe");
-	std::cout << "[*] NieRAutomata.exe base: " << std::hex << Nier::moduleBaseAddress << std::endl;
 	Nier::pChips = (Chips*)(Nier::moduleBaseAddress + 0xF5D0C0);
+	std::cout << "[*] NieRAutomata.exe base: " << std::hex << Nier::moduleBaseAddress << std::endl;
 
 	Nier::updateChipsListAndCount();
 

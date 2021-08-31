@@ -228,10 +228,10 @@ HRESULT __fastcall Hook::Present(IDXGISwapChain* pChain, UINT SyncInterval, UINT
 	ImGui_ImplDX11_NewFrame();
 
 	ImGui::NewFrame();
-	//Menu is displayed when g_ShowMenu is TRUE
+	customImguiDrawAlways();
 	if (g_ShowMenu)
 	{
-		customImguiDraw();
+		customImguiDrawMenu();
 	}
 	ImGui::EndFrame();
 
