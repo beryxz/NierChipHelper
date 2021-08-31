@@ -14,7 +14,13 @@ BOOL g_ShowMenu = FALSE;
 
 HWND g_Hwnd = NULL;
 WNDPROC g_originalWndProcHandler = nullptr;
+HMODULE g_hDllModule = nullptr;
 
+
+Hook::Hook(HMODULE hDllModule)
+{
+	g_hDllModule = hDllModule;
+}
 
 Hook::~Hook()
 {
@@ -58,6 +64,7 @@ void Hook::unhook() {
 	if (g_originalWndProcHandler != nullptr) {
 		std::cout << "[+] Unhooking WndProcHandler" << std::endl;
 		(WNDPROC)SetWindowLongPtr(g_Hwnd, GWLP_WNDPROC, (LONG_PTR)g_originalWndProcHandler);
+		
 		std::cout << "[+] Unhooking Dear Imgui" << std::endl;
 		ImGui_ImplDX11_Shutdown();
 		ImGui_ImplWin32_Shutdown();
@@ -204,17 +211,25 @@ HRESULT __fastcall Hook::Present(IDXGISwapChain* pChain, UINT SyncInterval, UINT
 		g_pSwapChain = pChain;
 		DXGI_SWAP_CHAIN_DESC sd;
 		pChain->GetDesc(&sd);
-		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO(); (void)io;
-		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		g_Hwnd = sd.OutputWindow;
 
-		//Set g_originalWndProcHandler to the Address of the Original WndProc function
-		g_originalWndProcHandler = (WNDPROC)SetWindowLongPtr(g_Hwnd, GWLP_WNDPROC, (LONG_PTR)Hook::hWndProc);
-
+		ImGui::CreateContext();
 		ImGui_ImplWin32_Init(g_Hwnd);
 		ImGui_ImplDX11_Init(g_pDevice, g_pContext);
 		ImGui::GetIO().ImeWindowHandle = g_Hwnd;
+
+		ImGuiIO& io = ImGui::GetIO();
+		io.Fonts->AddFontDefault();
+		io.Fonts->Build();
+		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+		std::cout << "[*] Loading custom fonts" << std::endl;
+		if (!loadCustomDearImguiFonts(g_hDllModule)) {
+			std::cout << "\t[!] Error loading custom fonts" << std::endl;
+		}
+
+		//Set g_originalWndProcHandler to the Address of the Original WndProc function
+		g_originalWndProcHandler = (WNDPROC)SetWindowLongPtr(g_Hwnd, GWLP_WNDPROC, (LONG_PTR)Hook::hWndProc);
 
 		ID3D11Texture2D* pBackBuffer;
 

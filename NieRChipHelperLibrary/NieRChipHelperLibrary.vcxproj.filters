@@ -31,6 +31,9 @@
     <Filter Include="asm">
       <UniqueIdentifier>{cf612002-b076-4cc2-a62a-cf8afa380984}</UniqueIdentifier>
     </Filter>
+    <Filter Include="fonts">
+      <UniqueIdentifier>{24f682f3-8e1a-45fb-9d7d-f2fe72d210ec}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -81,8 +84,8 @@
     <ClInclude Include="Mem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="fonts.h">
+      <Filter>fonts</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -128,15 +131,13 @@
     <ClCompile Include="Mem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="roboto_bold.cpp">
+      <Filter>fonts</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="autoDelete.asm">
       <Filter>asm</Filter>
     </MASM>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="NieRChipHelperLibrary.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
   </ItemGroup>
 </Project>

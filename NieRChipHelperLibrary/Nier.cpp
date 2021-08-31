@@ -137,23 +137,3 @@ void Nier::clearForExit()
 {
 	if (isAutoDeleteActive()) toggleAutoDelete();
 }
-
-BOOL Nier::loadOSDFont(HMODULE hModule)
-{
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-
-	HRSRC fontRes = FindResource(hModule, MAKEINTRESOURCE(IDR_FONT1), RT_FONT);
-	if (fontRes == NULL) { return FALSE; }
-
-	DWORD resSize = SizeofResource(hModule, fontRes);
-	if (resSize == 0) { return FALSE; }
-
-	HGLOBAL hResource = LoadResource(hModule, fontRes);
-	if (hResource == NULL) { return FALSE; }
-
-	void* pFontData = LockResource(hResource);
-	if (pFontData == NULL) { return FALSE; }
-
-	Nier::osdFont = io.Fonts->AddFontFromMemoryTTF(pFontData, resSize, Nier::osdFontSize);
-	return TRUE;
-}

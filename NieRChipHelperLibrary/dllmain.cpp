@@ -5,8 +5,17 @@
 
 #include "Hook.h"
 #include "Nier.h"
+#include "fonts.h"
 
 void osd(ImDrawList* drawList);
+
+BOOL loadCustomDearImguiFonts(HMODULE hModule) {
+	ImGuiIO& io = ImGui::GetIO();
+	Nier::osdFont = io.Fonts->AddFontFromMemoryCompressedBase85TTF(roboto_bold_compressed_data_base85, Nier::osdFontSize);
+	io.Fonts->Build();
+
+	return TRUE;
+}
  
 void customImguiDrawAlways() {
 	auto bgDrawlist = ImGui::GetBackgroundDrawList();
@@ -181,20 +190,11 @@ void customImguiDrawMenu() {
 
 DWORD WINAPI mainThread(HMODULE hModule)
 {
-	Hook* hook = new Hook();
+	Hook* hook = new Hook(hModule);
 	hook->toggleConsole();
-	__try
-	{
-		hook->initialize();
-	}
-	__except (filterException(GetExceptionCode(), GetExceptionInformation())) {
-		std::cout << "[!] Error: Initializing hook" << std::endl;
-	}
+	hook->initialize();
 	
 	std::cout << "[*] Main thread started" << std::endl;
-
-	std::cout << "[*] Loading custom fonts" << std::endl;
-	Nier::loadOSDFont(hModule);
 
 	Nier::moduleBaseAddress = (uintptr_t)GetModuleHandle(L"NieRAutomata.exe");
 	Nier::pChips = (Chips*)(Nier::moduleBaseAddress + 0xF5D0C0);

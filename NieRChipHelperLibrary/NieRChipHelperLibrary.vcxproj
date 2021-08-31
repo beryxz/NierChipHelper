@@ -160,6 +160,7 @@
   <ItemGroup>
     <ClInclude Include="detours.h" />
     <ClInclude Include="exception.h" />
+    <ClInclude Include="fonts.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Hook.h" />
     <ClInclude Include="imconfig.h" />
@@ -174,7 +175,6 @@
     <ClInclude Include="Nier.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="reclass.h" />
-    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
@@ -196,12 +196,10 @@
     </ClCompile>
     <ClCompile Include="Hook.cpp" />
     <ClCompile Include="reclass.cpp" />
+    <ClCompile Include="roboto_bold.cpp" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="autoDelete.asm" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="NieRChipHelperLibrary.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

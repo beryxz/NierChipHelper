@@ -25,7 +25,6 @@
 
 #include "exception.h"
 #include "reclass.h"
-#include "Nier.h"
 
 // ImGui Exportation
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -36,6 +35,9 @@ typedef HRESULT(__stdcall* D3D11PresentHook) (IDXGISwapChain* pSwapChain, UINT S
 // Dear ImGui
 void customImguiDrawAlways();
 void customImguiDrawMenu();
+
+// dllmain exportation
+BOOL loadCustomDearImguiFonts(HMODULE hModule);
 
 
 extern ID3D11Device* g_pDevice;
@@ -50,12 +52,14 @@ extern BOOL g_ShowMenu;
 
 extern HWND g_Hwnd;
 extern WNDPROC g_originalWndProcHandler;
+extern HMODULE g_hDllModule;
 
 
 
 class Hook {
 public:
 	~Hook();
+	Hook(HMODULE hDllModule);
 
 	BOOL toggleConsole();
 	void initialize();

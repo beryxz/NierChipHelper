@@ -6,8 +6,6 @@
 
 #include "imgui.h"
 
-#include "resource.h"
-
 #include "Mem.h"
 #include "detours.h"
 #include "reclass.h"
@@ -61,7 +59,6 @@ public:
 	// OSD (On screen display)
 	static ImFont* osdFont;
 	static BOOL isOSDActive();
-	static BOOL loadOSDFont(HMODULE hModule);
 	static const float osdFontSize;
 
 	static void clearForExit();
