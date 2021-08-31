@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "reclass.h"
 
-void Chip::clear() {
+void ChipItem::clear() {
 	this->baseCode = -1;
 	this->baseId = -1;
 	this->type = -1;

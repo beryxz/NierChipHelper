@@ -64,6 +64,9 @@ void customImguiDrawMenu() {
 		Nier::toggleAutoDelete();
 	}
 
+	ImGui::Combo("Shown status in table", &Nier::curShownStatusIndex, "All\0Empty\0Trash\0New\0\0");
+
+	const int NUM_COLUMNS = 5;
 	ImGuiTableFlags flags =
 		ImGuiTableFlags_RowBg |
 		ImGuiTableFlags_BordersOuter |
@@ -72,151 +75,151 @@ void customImguiDrawMenu() {
 		ImGuiTableFlags_ScrollY |
 		ImGuiTableFlags_SizingFixedFit |
 		ImGuiTableFlags_Sortable | ImGuiTableFlags_SortMulti;
-	if (ImGui::BeginTable("chipsTable", 4, flags))
+	if (ImGui::BeginTable("chipsTable", NUM_COLUMNS, flags))
 	{
-		ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_PreferSortAscending | ImGuiTableColumnFlags_WidthStretch);
-		ImGui::TableSetupColumn("Level", ImGuiTableColumnFlags_DefaultSort);
-		ImGui::TableSetupColumn("Weight", ImGuiTableColumnFlags_PreferSortAscending);
-		ImGui::TableSetupColumn("Action", ImGuiTableColumnFlags_NoSort);
+		ImGui::TableSetupColumn("Name",		ImGuiTableColumnFlags_PreferSortAscending | ImGuiTableColumnFlags_WidthStretch	);
+		ImGui::TableSetupColumn("Level",	ImGuiTableColumnFlags_DefaultSort												);
+		ImGui::TableSetupColumn("Weight",	ImGuiTableColumnFlags_PreferSortAscending										);
+		ImGui::TableSetupColumn("Status",	ImGuiTableColumnFlags_NoSort			  | ImGuiTableColumnFlags_WidthStretch	);
+		ImGui::TableSetupColumn("Action",	ImGuiTableColumnFlags_NoSort													);
 		ImGui::TableSetupScrollFreeze(0, 1);
 		ImGui::TableHeadersRow();
 
 		// Sort our data if sort specs have been changed!
-		__try {
-			if (ImGuiTableSortSpecs* sorts_specs = ImGui::TableGetSortSpecs()) {
-				if (sorts_specs->SpecsDirty || Nier::isChipsListDirty)
-				{
-					std::sort(Nier::chipsList.begin(), Nier::chipsList.begin() + Nier::dChipsCount, [sorts_specs](const Chip* a, const Chip* b) {
-						if (a == nullptr || b == nullptr) return false;
-
-						for (int n = 0; n < sorts_specs->SpecsCount; n++)
-						{
-							const ImGuiTableColumnSortSpecs* sort_spec = &sorts_specs->Specs[n];
-							int delta = 0;
-
-							switch (sort_spec->ColumnIndex)
-							{
-							case 0: // Name
-								delta = (Nier::chipsTypeTable.at(a->type).name.compare(Nier::chipsTypeTable.at(b->type).name));
-								break;
-							case 1: // Level
-								delta = (a->level - b->level);
-								break;
-							case 2: // Weight
-								delta = (a->weight - b->weight);
-								break;
-							}
-
-							if (delta > 0)
-								return (sort_spec->SortDirection == ImGuiSortDirection_Ascending) ? false : true;
-							if (delta < 0)
-								return (sort_spec->SortDirection == ImGuiSortDirection_Ascending) ? true : false;
-						}
-
-						return false; // default case if all columns are equal
-						});
-
-					sorts_specs->SpecsDirty = false;
-					Nier::isChipsListDirty = FALSE;
-				}
-			}
-		}
-		__except (filterException(GetExceptionCode(), GetExceptionInformation())) {
-			std::cout << "[!] Error: Table sorting function" << std::endl;
-		}
-
-
-		__try {
-			int row = 0;
-			for (Chip* c : Nier::chipsList)
+		if (ImGuiTableSortSpecs* sorts_specs = ImGui::TableGetSortSpecs()) {
+			if (sorts_specs->SpecsDirty || Nier::isChipsListDirty)
 			{
-				if (c != nullptr && c->baseId != -1 && c->alwaysZero == 0)
-				{
-					ImGui::PushID(row);
-					ImGui::TableNextRow();
+				std::sort(Nier::chipsList.begin(), Nier::chipsList.begin() + Nier::dChipsCount, [sorts_specs](const Nier::ChipWrapper a, const Nier::ChipWrapper b) {
+					if (a.item == nullptr || b.item == nullptr) return false;
 
-					const Nier::ChipLevel* cl = &Nier::chipsLevelsTable.at(c->level);
-					const Nier::ChipType* ct = &Nier::chipsTypeTable.at(c->type);
-
-					// Set color based on chip category
-					ImU32 row_bg_color = NULL;
-					switch (ct->category) {
-					case Nier::CHIP_ATTACK:
-						row_bg_color = ImGui::GetColorU32(ImVec4(0.529f, 0.494f, 0.400f, 0.7f));
-						break;
-					case Nier::CHIP_DEFENSE:
-						row_bg_color = ImGui::GetColorU32(ImVec4(0.718f, 0.600f, 0.494f, 0.7f));
-						break;
-					case Nier::CHIP_HACKING:
-						row_bg_color = ImGui::GetColorU32(ImVec4(0.906f, 0.882f, 0.780f, 0.7f));
-						break;
-					case Nier::CHIP_SUPPORT:
-						row_bg_color = ImGui::GetColorU32(ImVec4(0.890f, 0.851f, 0.655f, 0.7f));
-						break;
-					case Nier::CHIP_SYSTEM:
-						row_bg_color = ImGui::GetColorU32(ImVec4(0.741f, 0.686f, 0.545f, 0.7f));
-						break;
-					}
-					ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, row_bg_color);
-
-					// Set color based on chip usefulness
-					if (c->weight > cl->maxWorthRank) {
-						ImGui::TableSetBgColor(
-							ImGuiTableBgTarget_RowBg1,
-							ImGui::GetColorU32(ImVec4(0.7f, 0.3f, 0.3f, 0.45f)));
-					}
-
-					for (int column = 0; column < 4; column++)
+					for (int n = 0; n < sorts_specs->SpecsCount; n++)
 					{
-						ImGui::TableSetColumnIndex(column);
+						const ImGuiTableColumnSortSpecs* sort_spec = &sorts_specs->Specs[n];
+						int delta = 0;
 
-						char buf[64];
-
-						switch (column) {
-						case 0:
-							sprintf_s(buf, "%s%s", ct->name.c_str(), c->weight == cl->diamondRank ? " *" : "");
-							ImGui::TextUnformatted(buf);
+						switch (sort_spec->ColumnIndex)
+						{
+						case 0: // Name
+							delta = a.type.name.compare(b.type.name);
 							break;
-						case 1:
-							sprintf_s(buf, "%d", c->level);
-							ImGui::TextUnformatted(buf);
+						case 1: // Level
+							delta = (a.item->level - b.item->level);
 							break;
-						case 2:
-							sprintf_s(buf, "%d", c->weight);
-							ImGui::TextUnformatted(buf);
-							break;
-						case 3:
-							if (ImGui::Button("Delete")) {
-								c->clear();
-								Nier::updateChipsCount((PVOID)Nier::pChips);
-								Nier::isChipsListDirty = TRUE;
-							};
+						case 2: // Weight
+							delta = (a.item->weight - b.item->weight);
 							break;
 						}
+
+						if (delta > 0)
+							return (sort_spec->SortDirection == ImGuiSortDirection_Ascending) ? false : true;
+						if (delta < 0)
+							return (sort_spec->SortDirection == ImGuiSortDirection_Ascending) ? true : false;
 					}
-					ImGui::PopID();
-					row++;
-				}
+
+					return false; // default case if all columns are equal
+					});
+
+				sorts_specs->SpecsDirty = false;
+				Nier::isChipsListDirty = FALSE;
 			}
 		}
-		__except (filterException(GetExceptionCode(), GetExceptionInformation())) {
-			std::cout << "[!] Error: Table drawer" << std::endl;
+
+		// render table
+		int row = 0;
+		for (const Nier::ChipWrapper c : Nier::chipsList)
+		{
+			if (c.item == nullptr || c.item->baseId == -1 || c.item->alwaysZero != 0) continue;
+			if ((Nier::curShownStatusIndex == 1 && c.status != Chip::Status_None)    ||
+				(Nier::curShownStatusIndex == 2 && !(c.status & Chip::Status_Trash)) ||
+				(Nier::curShownStatusIndex == 3 && !(c.status & Chip::Status_New))) continue;
+
+			ImGui::PushID(row);
+			ImGui::TableNextRow();
+
+			const Chip::Level* cl = &c.level;
+			const Chip::Type* ct = &c.type;
+
+			// Set color based on chip category
+			ImU32 row_bg_color = NULL;
+			switch (ct->category) {
+			case Chip::Category::ATTACK:
+				row_bg_color = ImGui::GetColorU32(ImVec4(0.529f, 0.494f, 0.400f, 0.7f));
+				break;
+			case Chip::Category::DEFENSE:
+				row_bg_color = ImGui::GetColorU32(ImVec4(0.718f, 0.600f, 0.494f, 0.7f));
+				break;
+			case Chip::Category::HACKING:
+				row_bg_color = ImGui::GetColorU32(ImVec4(0.906f, 0.882f, 0.780f, 0.7f));
+				break;
+			case Chip::Category::SUPPORT:
+				row_bg_color = ImGui::GetColorU32(ImVec4(0.890f, 0.851f, 0.655f, 0.7f));
+				break;
+			case Chip::Category::SYSTEM:
+				row_bg_color = ImGui::GetColorU32(ImVec4(0.741f, 0.686f, 0.545f, 0.7f));
+				break;
+			}
+			ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg1, row_bg_color);
+
+			for (int column = 0; column < NUM_COLUMNS; column++)
+			{
+				ImGui::TableSetColumnIndex(column);
+
+				char buf[64];
+				switch (column) {
+				case 0:
+					sprintf_s(buf, "%s%s", ct->name.c_str(), c.item->weight == cl->diamondRank ? " *" : "");
+					ImGui::TextUnformatted(buf);
+					break;
+				case 1:
+					sprintf_s(buf, "%d", c.item->level);
+					ImGui::TextUnformatted(buf);
+					break;
+				case 2:
+					sprintf_s(buf, "%d", c.item->weight);
+					ImGui::TextUnformatted(buf);
+					break;
+				case 3:
+					// Set color based on chip usefulness
+					if (c.status & Chip::Status_Trash)
+					{
+						ImGui::TextUnformatted("TRASH");
+
+						for (int i = column; i < NUM_COLUMNS; i++) {
+							ImGui::TableSetBgColor(
+								ImGuiTableBgTarget_CellBg,
+								ImGui::GetColorU32(ImVec4(0.7f, 0.3f, 0.3f, 0.45f)),
+								i
+							);
+						}
+					}
+					break;
+				case 4:
+					if (ImGui::Button("Delete")) {
+						c.item->clear();
+						Nier::updateChipsCount((PVOID)Nier::pChips);
+						Nier::isChipsListDirty = TRUE;
+					};
+					break;
+				}
+			}
+			ImGui::PopID();
+			row++;
 		}
+
 		ImGui::EndTable();
 	}
 }
 
-DWORD WINAPI mainThread(HMODULE hModule)
-{
-	Hook* hook = new Hook(hModule);
+// main logic is in this separate function so to be able to use smart pointers
+void mainFunction(HMODULE hModule) {
+	std::unique_ptr<Hook> hook(new Hook(hModule));
 	hook->toggleConsole();
 	hook->initialize();
-	
-	std::cout << "[*] Main thread started" << std::endl;
 
-	Nier* nier = new Nier();
+	std::unique_ptr<Nier> nier(new Nier());
 
-	// Main loop
+	std::cout << "[*] Ready!" << std::endl;
+
 	while (true)
 	{
 		// If number of chips changed, update the local chips array copy
@@ -231,11 +234,12 @@ DWORD WINAPI mainThread(HMODULE hModule)
 
 		Sleep(5);
 	}
+}
 
-	delete nier;
-	delete hook;
+DWORD WINAPI mainThread(HMODULE hModule)
+{
+	mainFunction(hModule);
 	FreeLibraryAndExitThread(hModule, 0);
-
     return 0;
 }
 

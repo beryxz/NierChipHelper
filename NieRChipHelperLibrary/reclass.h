@@ -14,7 +14,7 @@ public:
 }; //Size: 0x188C
 static_assert(sizeof(Player) == 0x188C);
 
-class Chip
+class ChipItem
 {
 public:
 	int32_t baseCode; //0x0000
@@ -30,7 +30,7 @@ public:
 
 	void clear();
 }; //Size: 0x0030
-static_assert(sizeof(Chip) == 0x30);
+static_assert(sizeof(ChipItem) == 0x30);
 
 #pragma pack(push,1)
 class Chips
@@ -60,6 +60,6 @@ class Inventory
 public:
 	class Item items[512]; //0x0000
 	char pad_1800[1872]; //0x1800
-	class Chip chips[300]; //0x1F50
+	class ChipItem chips[300]; //0x1F50
 }; //Size: 0x5790
 static_assert(sizeof(Inventory) == 0x5790);

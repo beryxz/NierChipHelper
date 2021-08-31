@@ -11,12 +11,48 @@
 #include "reclass.h"
 
 
+namespace Chip {
+	enum Status_ {
+		Status_None		= 1 << 0,
+		Status_Trash	= 1 << 1,
+		Status_New		= 1 << 2
+	};
+
+	enum class Category {
+		SYSTEM,		// #877E66 - 0.906 0.882 0.780
+		ATTACK,		// #B7997E - 0.718 0.600 0.494
+		DEFENSE,	// #BDAF8B - 0.741 0.686 0.545
+		SUPPORT,	// #E3D9A7 - 0.890 0.851 0.655
+		HACKING		// #E7E1C7 - 0.529 0.494 0.400
+	};
+
+	struct Type {
+		int32_t type;
+		std::string name;
+		Chip::Category category;
+	};
+
+	struct Level {
+		int32_t level;
+		int32_t maxWorthRank;
+		int32_t diamondRank;
+	};
+}
+
+
 class Nier
 {
 public:
 
 	Nier();
 	~Nier();
+
+	struct ChipWrapper {
+		ChipItem* item;
+		Chip::Type type;
+		DWORD status;
+		Chip::Level level;
+	};
 
 	// The game internal logic support up to 300 chips.
 	// But in the latest game versions the actual max has been capped to 200.
@@ -28,36 +64,18 @@ public:
 	static Chips* pChips; // pointer to chips counters and inventory location
 	static DWORD dChipsCount;
 
-	static BOOL isChipsListDirty;
-	static std::array<Chip*, dMaxStorableChipCount> chipsList; // Local copy of pointers to chips, used for sorting the list
-
 	static uintptr_t moduleBaseAddress;
+
+	// Used for rendering Chips Table
+	static BOOL isChipsListDirty;
+	static int curShownStatusIndex;
+	static std::array<ChipWrapper, dMaxStorableChipCount> chipsList; // Local copy of pointers to chips, used for sorting the list
 
 	// In-game function pointers
 	static void (*updateChipsCount)(void* pChipsBaseAddr);
 
-	enum ChipCategory {
-		CHIP_SYSTEM,  // #877E66 - 0.906 0.882 0.780
-		CHIP_ATTACK,  // #B7997E - 0.718 0.600 0.494
-		CHIP_DEFENSE, // #BDAF8B - 0.741 0.686 0.545
-		CHIP_SUPPORT, // #E3D9A7 - 0.890 0.851 0.655
-		CHIP_HACKING  // #E7E1C7 - 0.529 0.494 0.400
-	};
-
-	struct ChipType {
-		int32_t type;
-		std::string name;
-		ChipCategory category;
-	};
-
-	struct ChipLevel {
-		int32_t level;
-		int32_t maxWorthRank;
-		int32_t diamondRank;
-	};
-
-	static const std::unordered_map<int, ChipLevel> chipsLevelsTable;
-	static const std::unordered_map<int, ChipType> chipsTypeTable;
+	static const std::unordered_map<int, Chip::Level> chipsLevelsTable;
+	static const std::unordered_map<int, Chip::Type> chipsTypeTable;
 
 	static void updateChipsListAndCount();
 

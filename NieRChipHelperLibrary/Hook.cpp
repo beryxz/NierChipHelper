@@ -187,8 +187,6 @@ void Hook::getD3D11PresentAddr()
 	dev->Release();
 	swapchain->Release();
 	devcon->Release();
-
-	std::cout << "[*] Present address: " << std::hex << g_pHookD3D11Present << std::endl;
 }
 
 void Hook::detourDirectX()
@@ -205,7 +203,7 @@ void Hook::detourDirectX()
 HRESULT __fastcall Hook::Present(IDXGISwapChain* pChain, UINT SyncInterval, UINT Flags)
 {
 	if (!g_bInitialized) {
-		std::cout << "[*] Present Hook called by first time" << std::endl;
+		std::cout << "[+] Present Hook initialization" << std::endl;
 		if (FAILED(Hook::GetDeviceAndCtxFromSwapchain(pChain, &g_pDevice, &g_pContext)))
 			return g_pHookD3D11Present(pChain, SyncInterval, Flags);
 		g_pSwapChain = pChain;
@@ -223,7 +221,6 @@ HRESULT __fastcall Hook::Present(IDXGISwapChain* pChain, UINT SyncInterval, UINT
 		io.Fonts->Build();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-		std::cout << "[*] Loading custom fonts" << std::endl;
 		if (!loadCustomDearImguiFonts(g_hDllModule)) {
 			std::cout << "\t[!] Error loading custom fonts" << std::endl;
 		}
@@ -243,11 +240,16 @@ HRESULT __fastcall Hook::Present(IDXGISwapChain* pChain, UINT SyncInterval, UINT
 	ImGui_ImplDX11_NewFrame();
 
 	ImGui::NewFrame();
+	
 	customImguiDrawAlways();
 	if (g_ShowMenu)
 	{
+		ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
+		ImGui::Begin("Chip Helper##ChipHelperMain", NULL, ImGuiWindowFlags_NoCollapse);
 		customImguiDrawMenu();
+		ImGui::End();
 	}
+
 	ImGui::EndFrame();
 
 	ImGui::Render();
