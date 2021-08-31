@@ -27,20 +27,39 @@ void customImguiDrawAlways() {
 
 // On screen display for chips count
 void osd(ImDrawList* drawlist) {
-	if (Nier::osdFont != nullptr)
+	if (Nier::isOSDActive() && Nier::osdFont != nullptr)
 	{
+		// Chips count
+		ImGui::PushFont(Nier::osdFont);
 		char text[128];
 		sprintf_s(text, 128, "Chips: %d/%d", Nier::dChipsCount, Nier::dMaxChipCount);
-		drawlist->AddText(Nier::osdFont, Nier::osdFontSize, ImVec2(5, 15), IM_COL32(120, 120, 120, 255), text);
+		ImVec2 textBasePos = ImVec2(5, 20);
+		ImVec2 textSize = ImGui::CalcTextSize(text);
+		float padding = 2.0f;
+		drawlist->AddRectFilled(
+			ImVec2(textBasePos.x-padding, textBasePos.y-padding),
+			ImVec2(textBasePos.x+textSize.x+padding, textBasePos.y+textSize.y+padding),
+			IM_COL32(140,40,40,255),
+			3.0f
+		);
+		drawlist->AddText(NULL, 0, textBasePos, IM_COL32(200, 200, 200, 255), text);
+		ImGui::PopFont();
 	}
 }
 
 void customImguiDrawMenu() {
 	ImGui::Text("%d/%d chips in inventory", Nier::dChipsCount, Nier::dMaxChipCount);
 
+	ImGui::Text("[%c] Chips count OSD:", Nier::isOSDActive() ? 'X' : ' ');
+	ImGui::SameLine();
+	if (ImGui::SmallButton("Toggle##t1"))
+	{
+		Nier::toggleOSD();
+	}
+
 	ImGui::Text("[%c] Auto-delete new useless chips:", Nier::isAutoDeleteActive() ? 'X' : ' ');
 	ImGui::SameLine();
-	if (ImGui::Button("Toggle"))
+	if (ImGui::SmallButton("Toggle##t2"))
 	{
 		Nier::toggleAutoDelete();
 	}

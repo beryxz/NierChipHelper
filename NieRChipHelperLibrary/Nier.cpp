@@ -92,6 +92,22 @@ const std::unordered_map<int, Nier::ChipType> Nier::chipsTypeTable = {
 	{ 0x3F, { 0x3F, "Auto-Weapon Switch",	Nier::CHIP_SUPPORT	} },
 };
 
+Nier::Nier()
+{
+	Nier::moduleBaseAddress = (uintptr_t)GetModuleHandle(L"NieRAutomata.exe");
+	std::cout << "[*] NieRAutomata.exe base: " << std::hex << Nier::moduleBaseAddress << std::endl;
+
+	Nier::pChips = (Chips*)(Nier::moduleBaseAddress + 0xF5D0C0);
+	Nier::updateChipsCount = (void (*)(void*))(PVOID)(Nier::moduleBaseAddress + 0x7D5020);
+
+	Nier::updateChipsListAndCount();
+}
+
+Nier::~Nier()
+{
+	clearForExit();
+}
+
 void Nier::updateChipsListAndCount() {
 	if (pChips != nullptr)
 	{
@@ -110,6 +126,11 @@ void Nier::updateChipsListAndCount() {
 	}
 }
 
+BOOL Nier::isAutoDeleteActive()
+{
+	return bAutoDelete;
+}
+
 void Nier::toggleAutoDelete()
 {
 	bAutoDelete = !bAutoDelete;
@@ -126,30 +147,14 @@ void Nier::toggleAutoDelete()
 	}
 }
 
-Nier::Nier()
-{
-	Nier::moduleBaseAddress = (uintptr_t)GetModuleHandle(L"NieRAutomata.exe");
-	std::cout << "[*] NieRAutomata.exe base: " << std::hex << Nier::moduleBaseAddress << std::endl;
-	
-	Nier::pChips = (Chips*)(Nier::moduleBaseAddress + 0xF5D0C0);
-	Nier::updateChipsCount = (void (*)(void *))(PVOID)(Nier::moduleBaseAddress + 0x7D5020);
-	
-	Nier::updateChipsListAndCount();
-}
-
-Nier::~Nier()
-{
-	clearForExit();
-}
-
-BOOL Nier::isAutoDeleteActive()
-{
-	return bAutoDelete;
-}
-
 BOOL Nier::isOSDActive()
 {
 	return bOSD;
+}
+
+void Nier::toggleOSD()
+{
+	bOSD = !bOSD;
 }
 
 void Nier::clearForExit()

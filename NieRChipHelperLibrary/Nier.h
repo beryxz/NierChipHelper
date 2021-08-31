@@ -66,8 +66,9 @@ public:
 
 	// OSD (On screen display)
 	static ImFont* osdFont;
-	static BOOL isOSDActive();
 	static const float osdFontSize;
+	static BOOL isOSDActive();
+	static void toggleOSD();
 
 	static void clearForExit();
 
