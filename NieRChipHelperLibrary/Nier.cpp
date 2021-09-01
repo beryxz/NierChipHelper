@@ -12,10 +12,18 @@ DWORD Nier::dChipsCount = 0; // This counter is auto updated to reflect the in-g
 
 BOOL Nier::isChipsListDirty = FALSE;
 int Nier::curShownStatusIndex = 0;
+/*
+Chips in memory are saved in an array that isn't sorted.
+New chips are added to the first position that's empty.
+Deleted chips are just set to -1, nothing gets moved around.
+Therefore, this array is used to keep track of empty spots, to be able to mark new chips between updates
+*/
+std::array<Nier::ChipsListIndex, Nier::dMaxStorableChipCount> Nier::chipsListIndex;
 std::array<Nier::ChipWrapper, Nier::dMaxStorableChipCount> Nier::chipsList{}; // Local copy of pointers to chips, used for sorting the list
 
 uintptr_t Nier::moduleBaseAddress;
 void (*Nier::updateChipsCount)(void* pChipsBaseAddr);
+DWORD* Nier::isWorldLoaded;
 
 BOOL Nier::bAutoDelete = FALSE;
 Mem::hook_t* Nier::autoDeleteHook;
@@ -25,14 +33,16 @@ ImFont* Nier::osdFont = nullptr;
 const float Nier::osdFontSize = 18;
 
 const std::unordered_map<int, Chip::Level> Nier::chipsLevelsTable = {
-	{ 0, { 0,	 6,	 4 } },
-	{ 1, { 1,	 7,	 5 } },
-	{ 2, { 2,	 8,	 6 } },
-	{ 3, { 3,	 9,	 7 } },
-	{ 4, { 4,	11,	 9 } },
-	{ 5, { 5,	13,	11 } },
-	{ 6, { 6,	16,	14 } },
-	{ 7, { 7,	19,	17 } }
+	{ -1, { -1,	 0,	 0 } },
+	{  0, {  0,	 6,	 4 } },
+	{  1, {  1,	 7,	 5 } },
+	{  2, {  2,	 8,	 6 } },
+	{  3, {  3,	 9,	 7 } },
+	{  4, {  4,	11,	 9 } },
+	{  5, {  5,	13,	11 } },
+	{  6, {  6,	16,	14 } },
+	{  7, {  7,	19,	17 } },
+	{  8, {  8,	23,	21 } }
 };
 
 const std::unordered_map<int, Chip::Type> Nier::chipsTypeTable = {
@@ -103,7 +113,13 @@ Nier::Nier()
 	Nier::pChips = (Chips*)(Nier::moduleBaseAddress + 0xF5D0C0);
 	Nier::updateChipsCount = (void (*)(void*))(PVOID)(Nier::moduleBaseAddress + 0x7D5020);
 
+	Nier::isWorldLoaded = (DWORD*)(Nier::moduleBaseAddress + 0xF5CBA0);
+
+	// Set all the indexes as empty
+	Nier::chipsListIndex.fill({TRUE, FALSE});
+
 	Nier::updateChipsListAndCount();
+	Nier::removeNewStatusFromChips();
 }
 
 Nier::~Nier()
@@ -122,18 +138,50 @@ void Nier::updateChipsListAndCount() {
 			c = &pChips->pInventory->chips[row];
 			if (c->baseId != -1 && c->alwaysZero == 0)
 			{
+				// If the chip was just added, set the status "new"
+				if (chipsListIndex[row].isEmpty)
+				{
+					chipsListIndex[row].isEmpty = FALSE;
+					chipsListIndex[row].isNew = TRUE;
+				}
+
 				chipsList[i].item = c;
 				chipsList[i].type = Nier::chipsTypeTable.at(c->type);
 				chipsList[i].level = Nier::chipsLevelsTable.at(c->level);
 				chipsList[i].status = Chip::Status_None;
 
+				// Trash status
 				if (c->weight > chipsList[i].level.maxWorthRank)
 					chipsList[i].status |= Chip::Status_Trash;
+				// New status
+				if (chipsListIndex[row].isNew)
+					chipsList[i].status |= Chip::Status_New;
 
 				i++;
 				dChipsCount++;
 			}
+			else
+			{
+				// If the chip was deleted, clear the status "new"
+				if (!chipsListIndex[row].isEmpty)
+				{
+					chipsListIndex[row].isEmpty = TRUE;
+					chipsListIndex[row].isNew = FALSE;
+				}
+			}
 		}
+	}
+}
+
+void Nier::removeNewStatusFromChips() {
+	ChipWrapper* c;
+	for (int i = 0; i < chipsList.size(); i++) {
+		chipsListIndex[i].isNew = FALSE;
+
+		c = &chipsList[i];
+		if (c->item == NULL) continue;
+
+		c->status &= ~Chip::Status_New;
 	}
 }
 

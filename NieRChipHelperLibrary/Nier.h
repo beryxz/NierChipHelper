@@ -64,6 +64,8 @@ public:
 	static Chips* pChips; // pointer to chips counters and inventory location
 	static DWORD dChipsCount;
 
+	static DWORD* isWorldLoaded;
+
 	static uintptr_t moduleBaseAddress;
 
 	// Used for rendering Chips Table
@@ -78,6 +80,7 @@ public:
 	static const std::unordered_map<int, Chip::Type> chipsTypeTable;
 
 	static void updateChipsListAndCount();
+	static void removeNewStatusFromChips();
 
 	static void toggleAutoDelete();
 	static BOOL isAutoDeleteActive();
@@ -92,8 +95,19 @@ public:
 
 private:
 
+	// AutoDelete hook
 	static BOOL bAutoDelete;
 	static Mem::hook_t* autoDeleteHook;
+
+	// Used for rendering chip tables
+	static struct ChipsListIndex { BOOL isEmpty; BOOL isNew; };
+	/*
+	Chips in memory are saved in an array that isn't sorted.
+	New chips are added to the first position that's empty.
+	Deleted chips are just set to -1, nothing gets moved around.
+	Therefore, this array is used to keep track of empty spots, to be able to mark new chips between updates
+	*/
+	static std::array<ChipsListIndex, dMaxStorableChipCount> chipsListIndex;
 
 	static BOOL bOSD;
 

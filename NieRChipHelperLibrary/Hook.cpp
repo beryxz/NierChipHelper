@@ -184,6 +184,9 @@ void Hook::getD3D11PresentAddr()
 	pSwapChainVtable = (DWORD_PTR*)pSwapChainVtable[0];
 	g_pHookD3D11Present = (D3D11PresentHook)(DWORD_PTR*)pSwapChainVtable[8];
 
+	DestroyWindow(hWnd);
+	UnregisterClassA(wc.lpszClassName, wc.hInstance);
+
 	dev->Release();
 	swapchain->Release();
 	devcon->Release();

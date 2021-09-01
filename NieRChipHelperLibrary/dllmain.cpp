@@ -64,6 +64,13 @@ void customImguiDrawMenu() {
 		Nier::toggleAutoDelete();
 	}
 
+	ImGui::Separator();
+
+	if (ImGui::Button("Clear \"New Status\" from chips", { ImGui::GetWindowContentRegionWidth(), 18.0f }))
+	{
+		Nier::removeNewStatusFromChips();
+	}
+
 	ImGui::Combo("Shown status in table", &Nier::curShownStatusIndex, "All\0Empty\0Trash\0New\0\0");
 
 	const int NUM_COLUMNS = 5;
@@ -178,12 +185,24 @@ void customImguiDrawMenu() {
 					sprintf_s(buf, "%d", c.item->weight);
 					ImGui::TextUnformatted(buf);
 					break;
-				case 3:
-					// Set color based on chip usefulness
+				case 3: // Set color based on chip status
+				{
+					std::string status = "";
+
+					if (c.status & Chip::Status_New)
+					{
+						status += "[NEW] ";
+						for (int i = column; i < NUM_COLUMNS; i++) {
+							ImGui::TableSetBgColor(
+								ImGuiTableBgTarget_CellBg,
+								ImGui::GetColorU32(ImVec4(0.3f, 0.3f, 0.7f, 0.45f)),
+								i
+							);
+						}
+					}
 					if (c.status & Chip::Status_Trash)
 					{
-						ImGui::TextUnformatted("TRASH");
-
+						status += "[TRASH] ";
 						for (int i = column; i < NUM_COLUMNS; i++) {
 							ImGui::TableSetBgColor(
 								ImGuiTableBgTarget_CellBg,
@@ -192,6 +211,10 @@ void customImguiDrawMenu() {
 							);
 						}
 					}
+
+					ImGui::TextUnformatted(status.c_str());
+				}
+					
 					break;
 				case 4:
 					if (ImGui::Button("Delete")) {
@@ -214,10 +237,18 @@ void customImguiDrawMenu() {
 void mainFunction(HMODULE hModule) {
 	std::unique_ptr<Hook> hook(new Hook(hModule));
 	hook->toggleConsole();
-	hook->initialize();
 
 	std::unique_ptr<Nier> nier(new Nier());
 
+	std::cout << "[*] Waiting for world to be loaded..." << std::endl;
+	while (Nier::isWorldLoaded == NULL || !*Nier::isWorldLoaded) {
+		Sleep(100);
+	}
+
+	Nier::updateChipsCount((PVOID)Nier::pChips);
+	Nier::updateChipsListAndCount();
+	Nier::removeNewStatusFromChips();
+	hook->initialize();
 	std::cout << "[*] Ready!" << std::endl;
 
 	while (true)

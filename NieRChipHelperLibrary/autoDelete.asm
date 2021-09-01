@@ -22,6 +22,9 @@ AUTODELETE PROC
   cmp r14, 7h
   je rank7
 
+  ; level 8 or an hell of a strange case
+  jmp continue
+
 rank0:
   cmp r12, 6
   jle continue
