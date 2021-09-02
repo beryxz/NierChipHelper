@@ -64,7 +64,9 @@ public:
 	static Chips* pChips; // pointer to chips counters and inventory location
 	static DWORD dChipsCount;
 
+	// Status variables
 	static DWORD* isWorldLoaded;
+	static DWORD* isInAMenu;
 
 	static uintptr_t moduleBaseAddress;
 
@@ -95,20 +97,26 @@ public:
 
 private:
 
-	// AutoDelete hook
+	// ==== AutoDelete hook ====
 	static BOOL bAutoDelete;
 	static Mem::hook_t* autoDeleteHook;
 
-	// Used for rendering chip tables
-	static struct ChipsListIndex { BOOL isEmpty; BOOL isNew; };
+	// ==== Used for rendering chip tables ====
 	/*
-	Chips in memory are saved in an array that isn't sorted.
-	New chips are added to the first position that's empty.
-	Deleted chips are just set to -1, nothing gets moved around.
-	Therefore, this array is used to keep track of empty spots, to be able to mark new chips between updates
+		Struct to track a single position of the in-game chip array, between changes.
+		isEmpty and isNew are used to set "Status_New"
+		baseId is used when chips are fused to check if a chip was overwritten with a new one. If so, sets "Status_New"
+	*/
+	static struct ChipsListIndex { BOOL isEmpty; BOOL isNew; int32_t baseId; };
+	/*
+		Chips in memory are saved in an array that isn't sorted.
+		New chips are added to the first position that's empty.
+		Deleted chips are just set to -1, nothing gets moved around.
+		Therefore, this array is used to keep track of empty spots, to be able to mark new chips between updates
 	*/
 	static std::array<ChipsListIndex, dMaxStorableChipCount> chipsListIndex;
 
+	// ==== On-Screen Display ====
 	static BOOL bOSD;
 
 };

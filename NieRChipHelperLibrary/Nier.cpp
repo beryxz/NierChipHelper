@@ -24,6 +24,7 @@ std::array<Nier::ChipWrapper, Nier::dMaxStorableChipCount> Nier::chipsList{}; //
 uintptr_t Nier::moduleBaseAddress;
 void (*Nier::updateChipsCount)(void* pChipsBaseAddr);
 DWORD* Nier::isWorldLoaded;
+DWORD* Nier::isInAMenu;
 
 BOOL Nier::bAutoDelete = FALSE;
 Mem::hook_t* Nier::autoDeleteHook;
@@ -114,9 +115,10 @@ Nier::Nier()
 	Nier::updateChipsCount = (void (*)(void*))(PVOID)(Nier::moduleBaseAddress + 0x7D5020);
 
 	Nier::isWorldLoaded = (DWORD*)(Nier::moduleBaseAddress + 0xF5CBA0);
+	Nier::isInAMenu = (DWORD*)(Nier::moduleBaseAddress + 0x1414240);
 
 	// Set all the indexes as empty
-	Nier::chipsListIndex.fill({TRUE, FALSE});
+	Nier::chipsListIndex.fill({TRUE, FALSE, -1});
 
 	Nier::updateChipsListAndCount();
 	Nier::removeNewStatusFromChips();
@@ -143,6 +145,16 @@ void Nier::updateChipsListAndCount() {
 				{
 					chipsListIndex[row].isEmpty = FALSE;
 					chipsListIndex[row].isNew = TRUE;
+					chipsListIndex[row].baseId = c->baseId;
+				}
+				else
+				{
+					// When chips are fused, one is overwritten and one is cleared
+					// Therefore, if baseId change, set the NEW status
+					if (chipsListIndex[row].baseId != c->baseId) {
+						chipsListIndex[row].baseId = c->baseId;
+						chipsListIndex[row].isNew = TRUE;
+					}
 				}
 
 				chipsList[i].item = c;
@@ -167,6 +179,7 @@ void Nier::updateChipsListAndCount() {
 				{
 					chipsListIndex[row].isEmpty = TRUE;
 					chipsListIndex[row].isNew = FALSE;
+					chipsListIndex[row].baseId = -1;
 				}
 			}
 		}

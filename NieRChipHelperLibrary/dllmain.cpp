@@ -256,6 +256,18 @@ void mainFunction(HMODULE hModule) {
 		// If number of chips changed, update the local chips array copy
 		// if totChips == 0, gamesave has not been loaded yet.
 		if (Nier::pChips && Nier::pChips->totChips != 0 && Nier::dChipsCount != Nier::pChips->totChips) {
+			/*
+			Edge case (because of a BUG?):
+			When fusing chips, the first time you fuse chips, the in-game chips counter is decreased by 2 instead of only 1.
+			After the first time, and until the next the chips count is updated, each fuse the counter it's decreased by 1 as expected.
+			Therefore if in a menu, first update internal chip count. Otherwise an infinite loop will occur.
+			*/
+			if (Nier::isInAMenu)
+			{
+				Nier::updateChipsCount((PVOID)Nier::pChips);
+				Nier::isChipsListDirty = TRUE;
+			}
+			
 			Nier::updateChipsListAndCount();
 		}
 
