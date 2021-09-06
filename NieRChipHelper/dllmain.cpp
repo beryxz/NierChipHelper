@@ -133,7 +133,7 @@ void customImguiDrawMenu() {
 
 		// render table
 		int row = 0;
-		for (const Nier::ChipWrapper c : Nier::chipsList)
+		for (Nier::ChipWrapper& c : Nier::chipsList)
 		{
 			if (c.item == nullptr || c.item->baseId == -1 || c.item->alwaysZero != 0) continue;
 			if ((Nier::curShownStatusIndex == 1 && c.status != Chip::Status_None)    ||
@@ -222,6 +222,9 @@ void customImguiDrawMenu() {
 						Nier::updateChipsCount((PVOID)Nier::pChips);
 						Nier::isChipsListDirty = TRUE;
 					};
+					if ((c.status & Chip::Status_New) && ImGui::Button("Clear \"New\" status")) {
+						Nier::removeNewStatusFromChip(&c);
+					};
 					break;
 				}
 			}
@@ -238,8 +241,6 @@ void mainFunction(HMODULE hModule) {
 	std::unique_ptr<Hook> hook(new Hook(hModule));
 	hook->toggleConsole();
 
-	std::unique_ptr<Nier> nier(new Nier());
-
 	std::cout <<
 		R"r(=====================================================================)r" "\n"
 		R"r(   _  _ _ ____ ____ ____ _  _ _ ___  _  _ ____ _    ___  ____ ____   )r" "\n"
@@ -248,7 +249,9 @@ void mainFunction(HMODULE hModule) {
 		R"r(                                                                     )r" "\n"
 		R"r(======================================================( beryxz )=====)r" "\n\n";
 
-	std::cout << "[*] Waiting for world to be loaded..." << std::endl;
+	std::unique_ptr<Nier> nier(new Nier());
+
+	std::cout << "[#] Waiting for world to be loaded..." << std::endl;
 	while (Nier::isWorldLoaded == NULL || !*Nier::isWorldLoaded) {
 		Sleep(100);
 	}
@@ -257,7 +260,7 @@ void mainFunction(HMODULE hModule) {
 	Nier::updateChipsListAndCount();
 	Nier::removeNewStatusFromChips();
 	hook->initialize();
-	std::cout << "[*] Ready!" << std::endl;
+	std::cout << "[#] Ready!" << std::endl << "[+] Press <F2> to toggle the main-menu" << std::endl << "[+] Press <F3> to eject the mod" << std::endl;
 
 	while (true)
 	{

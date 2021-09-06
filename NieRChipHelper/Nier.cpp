@@ -11,14 +11,14 @@ Chips* Nier::pChips = nullptr; // pointer to chips counters and inventory locati
 DWORD Nier::dChipsCount = 0; // This counter is auto updated to reflect the in-game one. It shouldn't be modified.
 
 BOOL Nier::isChipsListDirty = FALSE;
-int Nier::curShownStatusIndex = 0;
+int Nier::curShownStatusIndex = 0; // Index of the filter type applied to the chips table
 /*
 Chips in memory are saved in an array that isn't sorted.
 New chips are added to the first position that's empty.
 Deleted chips are just set to -1, nothing gets moved around.
 Therefore, this array is used to keep track of empty spots, to be able to mark new chips between updates
 */
-std::array<Nier::ChipsListIndex, Nier::dMaxStorableChipCount> Nier::chipsListIndex;
+std::array<Nier::ChipsListIndex, Nier::dMaxStorableChipCount> Nier::chipsListIndexes;
 std::array<Nier::ChipWrapper, Nier::dMaxStorableChipCount> Nier::chipsList{}; // Local copy of pointers to chips, used for sorting the list
 
 uintptr_t Nier::moduleBaseAddress;
@@ -106,7 +106,7 @@ const std::unordered_map<int, Chip::Type> Nier::chipsTypeTable = {
 
 Nier::Nier()
 {
-	std::cout << "[*] Initializing Nier Class" << std::endl;
+	std::cout << "[#] Initializing Nier Class" << std::endl;
 
 	Nier::moduleBaseAddress = (uintptr_t)GetModuleHandle(L"NieRAutomata.exe");
 	std::cout << "[+] module base: " << std::hex << Nier::moduleBaseAddress << std::endl;
@@ -118,7 +118,7 @@ Nier::Nier()
 	Nier::isInAMenu = (DWORD*)(Nier::moduleBaseAddress + 0x1414240);
 
 	// Set all the indexes as empty
-	Nier::chipsListIndex.fill({TRUE, FALSE, -1});
+	Nier::chipsListIndexes.fill({TRUE, FALSE, -1});
 
 	Nier::updateChipsListAndCount();
 	Nier::removeNewStatusFromChips();
@@ -141,19 +141,19 @@ void Nier::updateChipsListAndCount() {
 			if (c->baseId != -1 && c->alwaysZero == 0)
 			{
 				// If the chip was just added, set the status "new"
-				if (chipsListIndex[row].isEmpty)
+				if (chipsListIndexes[row].isEmpty)
 				{
-					chipsListIndex[row].isEmpty = FALSE;
-					chipsListIndex[row].isNew = TRUE;
-					chipsListIndex[row].baseId = c->baseId;
+					chipsListIndexes[row].isEmpty = FALSE;
+					chipsListIndexes[row].isNew = TRUE;
+					chipsListIndexes[row].baseId = c->baseId;
 				}
 				else
 				{
 					// When chips are fused, one is overwritten and one is cleared
 					// Therefore, if baseId change, set the NEW status
-					if (chipsListIndex[row].baseId != c->baseId) {
-						chipsListIndex[row].baseId = c->baseId;
-						chipsListIndex[row].isNew = TRUE;
+					if (chipsListIndexes[row].baseId != c->baseId) {
+						chipsListIndexes[row].baseId = c->baseId;
+						chipsListIndexes[row].isNew = TRUE;
 					}
 				}
 
@@ -161,12 +161,13 @@ void Nier::updateChipsListAndCount() {
 				chipsList[i].type = Nier::chipsTypeTable.at(c->type);
 				chipsList[i].level = Nier::chipsLevelsTable.at(c->level);
 				chipsList[i].status = Chip::Status_None;
+				chipsList[i].chipsListIndex = &chipsListIndexes[row];
 
 				// Trash status
 				if (c->weight > chipsList[i].level.maxWorthRank)
 					chipsList[i].status |= Chip::Status_Trash;
 				// New status
-				if (chipsListIndex[row].isNew)
+				if (chipsListIndexes[row].isNew)
 					chipsList[i].status |= Chip::Status_New;
 
 				i++;
@@ -175,11 +176,11 @@ void Nier::updateChipsListAndCount() {
 			else
 			{
 				// If the chip was deleted, clear the status "new"
-				if (!chipsListIndex[row].isEmpty)
+				if (!chipsListIndexes[row].isEmpty)
 				{
-					chipsListIndex[row].isEmpty = TRUE;
-					chipsListIndex[row].isNew = FALSE;
-					chipsListIndex[row].baseId = -1;
+					chipsListIndexes[row].isEmpty = TRUE;
+					chipsListIndexes[row].isNew = FALSE;
+					chipsListIndexes[row].baseId = -1;
 				}
 			}
 		}
@@ -188,13 +189,21 @@ void Nier::updateChipsListAndCount() {
 
 void Nier::removeNewStatusFromChips() {
 	ChipWrapper* c;
-	for (int i = 0; i < chipsList.size(); i++) {
-		chipsListIndex[i].isNew = FALSE;
 
+	for (int i = 0; i < chipsList.size(); i++) {
 		c = &chipsList[i];
 		if (c->item == NULL) continue;
 
+		c->chipsListIndex->isNew = FALSE;
 		c->status &= ~Chip::Status_New;
+	}
+}
+
+void Nier::removeNewStatusFromChip(ChipWrapper* chip) {
+	if (chip)
+	{
+		chip->chipsListIndex->isNew = FALSE;
+		chip->status &= ~Chip::Status_New;
 	}
 }
 

@@ -46,11 +46,26 @@ public:
 	Nier();
 	~Nier();
 
+	/*
+		Struct to track a single position of the in-game chip array, between changes.
+		isEmpty and isNew are used to set "Status_New"
+		baseId is used when chips are fused to check if a chip was overwritten with a new one. If so, sets "Status_New"
+	*/
+	struct ChipsListIndex {
+		BOOL isEmpty;
+		BOOL isNew;
+		int32_t baseId;
+	};
+	/*
+		Wrapper around the Reclass "ChipItem" structure.
+		This wrapper adds useful metadata to improve its use.
+	*/
 	struct ChipWrapper {
 		ChipItem* item;
 		Chip::Type type;
 		DWORD status;
 		Chip::Level level;
+		ChipsListIndex* chipsListIndex;
 	};
 
 	// The game internal logic support up to 300 chips.
@@ -63,30 +78,38 @@ public:
 	static Chips* pChips; // pointer to chips counters and inventory location
 	static DWORD dChipsCount;
 
-	// Status variables
+	// ==== Status variables ====
 	static DWORD* isWorldLoaded;
 	static DWORD* isInAMenu;
 
 	static uintptr_t moduleBaseAddress;
 
-	// Used for rendering Chips Table
+	// ==== Used for rendering Chips Table ====
+	/*
+		Chips in memory are saved in an array that isn't sorted.
+		New chips are added to the first position that's empty.
+		Deleted chips are just set to -1, nothing gets moved around.
+		Therefore, this array is used to keep track of empty spots, to be able to mark new chips between updates
+	*/
+	static std::array<ChipsListIndex, dMaxStorableChipCount> chipsListIndexes;
 	static BOOL isChipsListDirty;
-	static int curShownStatusIndex;
+	static int curShownStatusIndex; // Index of the filter type applied to the chips table
 	static std::array<ChipWrapper, dMaxStorableChipCount> chipsList; // Local copy of pointers to chips, used for sorting the list
 
-	// In-game function pointers
+	// ==== In-game function pointers ====
 	static void (*updateChipsCount)(void* pChipsBaseAddr);
 
 	static const std::unordered_map<int, Chip::Level> chipsLevelsTable;
 	static const std::unordered_map<int, Chip::Type> chipsTypeTable;
 
 	static void updateChipsListAndCount();
+	static void removeNewStatusFromChip(ChipWrapper* chip);
 	static void removeNewStatusFromChips();
 
 	static void toggleAutoDelete();
 	static BOOL isAutoDeleteActive();
 
-	// OSD (On screen display)
+	// ==== OSD (On screen display) ====
 	static ImFont* osdFont;
 	static const float osdFontSize;
 	static BOOL isOSDActive();
@@ -99,21 +122,6 @@ private:
 	// ==== AutoDelete hook ====
 	static BOOL bAutoDelete;
 	static Mem::hook_t* autoDeleteHook;
-
-	// ==== Used for rendering chip tables ====
-	/*
-		Struct to track a single position of the in-game chip array, between changes.
-		isEmpty and isNew are used to set "Status_New"
-		baseId is used when chips are fused to check if a chip was overwritten with a new one. If so, sets "Status_New"
-	*/
-	struct ChipsListIndex { BOOL isEmpty; BOOL isNew; int32_t baseId; };
-	/*
-		Chips in memory are saved in an array that isn't sorted.
-		New chips are added to the first position that's empty.
-		Deleted chips are just set to -1, nothing gets moved around.
-		Therefore, this array is used to keep track of empty spots, to be able to mark new chips between updates
-	*/
-	static std::array<ChipsListIndex, dMaxStorableChipCount> chipsListIndex;
 
 	// ==== On-Screen Display ====
 	static BOOL bOSD;

@@ -109,6 +109,7 @@
     <ClInclude Include="Nier.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="reclass.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
@@ -132,6 +133,9 @@
   </ItemGroup>
   <ItemGroup>
     <MASM Include="autoDelete.asm" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="NieRChipHelper.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

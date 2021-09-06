@@ -194,7 +194,7 @@ void Hook::getD3D11PresentAddr()
 
 void Hook::detourDirectX()
 {
-	std::cout << "[*] Adding DirectX Detour" << std::endl;
+	std::cout << "[#] Adding DirectX Detour" << std::endl;
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
 	// Detours the original fnIDXGISwapChainPresent with our Present
