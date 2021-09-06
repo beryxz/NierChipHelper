@@ -18,7 +18,6 @@ char* getProcessName(DWORD dwPid) {
 
     char* pExeName = strrchr(procName, '\\');
     pExeName = (pExeName ? pExeName + 1 : procName);
-    std::cout << pExeName << std::endl;
     CloseHandle(hProcess);
     return pExeName;
 }

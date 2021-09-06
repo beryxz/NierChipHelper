@@ -240,6 +240,14 @@ void mainFunction(HMODULE hModule) {
 
 	std::unique_ptr<Nier> nier(new Nier());
 
+	std::cout <<
+		R"r(=====================================================================)r" "\n"
+		R"r(   _  _ _ ____ ____ ____ _  _ _ ___  _  _ ____ _    ___  ____ ____   )r" "\n"
+		R"r(   |\ | | |___ |__/ |    |__| | |__] |__| |___ |    |__] |___ |__/   )r" "\n"
+		R"r(   | \| | |___ |  \ |___ |  | | |    |  | |___ |___ |    |___ |  \   )r" "\n"
+		R"r(                                                                     )r" "\n"
+		R"r(======================================================( beryxz )=====)r" "\n\n";
+
 	std::cout << "[*] Waiting for world to be loaded..." << std::endl;
 	while (Nier::isWorldLoaded == NULL || !*Nier::isWorldLoaded) {
 		Sleep(100);
