@@ -24,7 +24,7 @@ This mod it's intended to be used during gameplay to better browse chips, find t
 
 Download the latest version from the **Releases** section.
 
-This mod is in the form of a dynamic library -> `.dll`. You need an injector to use it.
+This mod is in the form of a dynamic library -> `.dll`. To use it, you can either use the bundled loader, or an injector of yours.
 
 All the Keybind and Features will be active once the game world is fully loaded.
 
@@ -44,8 +44,14 @@ All the Keybind and Features will be active once the game world is fully loaded.
 
 ## How to build
 
-1. Build your own copy of the [Microsoft Detours][detours] library. Copy `lib.X64\detours.lib` and `include\detours.h` in the `NieRChipHelperLibrary` folder. (Project tested with Detours Version 4.0.1)
-2. Open the `NieRChipHelperLibrary.sln` solution and build it.
+To build the `.dll` library follow the following steps:
+
+1. Build your own copy of the [Microsoft Detours][detours] library. Copy `lib.X64\detours.lib` and `include\detours.h` in the `NieRChipHelper` folder. (Project tested with Detours Version 4.0.1)
+2. Open the `NieRChipHelper.sln` solution and build it.
+
+If you also want to build the loader:
+
+1. Open the `NieRChipHelperLoader.sln` solution and build it.
 
 ## TODO
 
