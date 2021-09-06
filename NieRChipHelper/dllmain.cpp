@@ -150,10 +150,10 @@ void customImguiDrawMenu() {
 			ImU32 row_bg_color = NULL;
 			switch (ct->category) {
 			case Chip::Category::ATTACK:
-				row_bg_color = ImGui::GetColorU32(ImVec4(0.529f, 0.494f, 0.400f, 0.7f));
+				row_bg_color = ImGui::GetColorU32(ImVec4(0.718f, 0.600f, 0.494f, 0.7f));
 				break;
 			case Chip::Category::DEFENSE:
-				row_bg_color = ImGui::GetColorU32(ImVec4(0.718f, 0.600f, 0.494f, 0.7f));
+				row_bg_color = ImGui::GetColorU32(ImVec4(0.529f, 0.494f, 0.400f, 0.7f));
 				break;
 			case Chip::Category::HACKING:
 				row_bg_color = ImGui::GetColorU32(ImVec4(0.906f, 0.882f, 0.780f, 0.7f));
