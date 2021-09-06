@@ -8,6 +8,7 @@
   - [Important Notes](#important-notes)
   - [How to use](#how-to-use)
   - [Features](#features)
+    - [Tips](#tips)
   - [How to build](#how-to-build)
   - [TODO](#todo)
   - [Credits](#credits)
@@ -41,6 +42,16 @@ All the Keybind and Features will be active once the game world is fully loaded.
 - Chips picked up, bought, or resulting from a fusion; will be marked as "New" to distinguish them.
 - **Auto-Delete useless chips**: When this feature is active, if a picked or bought chip is not worth keeping based on the guide above, it won't be picked up.
 - **OSD**: When active, shows the chips count in the top left part of the screen.
+
+### Tips
+
+Chips can be sorted clicking on the columns header cells. Multi-column sorting is also supported, shift-click on the column header instead of using a normal click, to use it.
+
+For instance, a useful sorting order could be:
+
+1. Chips' Name
+2. Level
+3. Weight
 
 ## How to build
 
