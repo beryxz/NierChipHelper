@@ -48,6 +48,9 @@ void osd(ImDrawList* drawlist) {
 }
 
 void customImguiDrawMenu() {
+	// don't show the inventory if there's nothing fully loaded
+	if (!Nier::isWorldLoaded()) return;
+
 	Nier::mtxChipsList.lock();
 
 	ImGui::Text("%d/%d chips in inventory", Nier::dChipsCount, Nier::dMaxChipCount);
@@ -248,23 +251,33 @@ void mainFunction(HMODULE hModule) {
 		R"r(   |\ | | |___ |__/ |    |__| | |__] |__| |___ |    |__] |___ |__/   )r" "\n"
 		R"r(   | \| | |___ |  \ |___ |  | | |    |  | |___ |___ |    |___ |  \   )r" "\n"
 		R"r(                                                                     )r" "\n"
-		R"r(======================================================( beryxz )=====)r" "\n\n";
+		R"r(======================================================( beryxz )=====)r" "\n"
+		R"r( >  Press <F2> to toggle the main-menu                               )r" "\n"
+		R"r( >  Press <F3> to eject the mod                                      )r" "\n\n";
 
 	std::unique_ptr<Nier> nier(new Nier());
 
-	std::cout << "[#] Waiting for world to be loaded..." << std::endl;
-	while (Nier::isWorldLoaded == NULL || !*Nier::isWorldLoaded) {
-		Sleep(100);
-	}
-
-	Nier::updateChipsCount((PVOID)Nier::pChips);
-	Nier::updateChipsListAndCount();
-	Nier::removeNewStatusFromChips();
-	hook->initialize();
-	std::cout << "[#] Ready!" << std::endl << "[+] Press <F2> to toggle the main-menu" << std::endl << "[+] Press <F3> to eject the mod" << std::endl;
-
 	while (true)
 	{
+		// Wait for the game to be loaded and then initialize the chips list.
+		if (!Nier::isWorldLoaded())
+		{
+			std::cout << "[#] Waiting for world to be loaded..." << std::endl;
+
+			while (!Nier::isWorldLoaded()) {
+				Sleep(100);
+			}
+			Nier::mtxChipsList.lock();
+			Nier::resetChipsList();
+			Nier::mtxChipsList.unlock();
+
+			std::cout << "[+] Ready!" << std::endl;
+		}
+		else {
+			// Hook the game only when it's fully loaded. Otherwise it might crash
+			if (!hook->isInitialized) hook->initialize();
+		}
+
 		// If number of chips changed, update the local chips array copy
 		// if totChips == 0, gamesave has not been loaded yet.
 		if (Nier::pChips && Nier::pChips->totChips != 0 && Nier::dChipsCount != Nier::pChips->totChips) {
@@ -276,13 +289,13 @@ void mainFunction(HMODULE hModule) {
 			After the first time, and until the next the chips count is updated, each fuse the counter it's decreased by 1 as expected.
 			Therefore if in a menu, first update internal chip count. Otherwise an infinite loop will occur.
 			*/
-			if (Nier::isInAMenu)
+			if (Nier::isInAMenu())
 			{
 				Nier::updateChipsCount((PVOID)Nier::pChips);
-				Nier::isChipsListDirty = TRUE;
 			}
 			
 			Nier::updateChipsListAndCount();
+			Nier::isChipsListDirty = TRUE;
 
 			Nier::mtxChipsList.unlock();
 		}

@@ -28,8 +28,8 @@ std::mutex Nier::mtxChipsList;
 
 uintptr_t Nier::moduleBaseAddress;
 void (*Nier::updateChipsCount)(void* pChipsBaseAddr);
-DWORD* Nier::isWorldLoaded;
-DWORD* Nier::isInAMenu;
+DWORD* Nier::pdIsWorldLoaded;
+DWORD* Nier::pdIsInAMenu;
 
 BOOL Nier::bAutoDelete = FALSE;
 Mem::hook_t* Nier::autoDeleteHook;
@@ -114,13 +114,13 @@ Nier::Nier()
 	std::cout << "[#] Initializing Nier Class" << std::endl;
 
 	Nier::moduleBaseAddress = (uintptr_t)GetModuleHandle(L"NieRAutomata.exe");
-	std::cout << "[+] module base: " << std::hex << Nier::moduleBaseAddress << std::endl;
+	std::cout << "[+] Module base: " << std::hex << Nier::moduleBaseAddress << std::endl;
 
 	Nier::pChips = (Chips*)(Nier::moduleBaseAddress + 0xF5D0C0);
 	Nier::updateChipsCount = (void (*)(void*))(PVOID)(Nier::moduleBaseAddress + 0x7D5020);
 
-	Nier::isWorldLoaded = (DWORD*)(Nier::moduleBaseAddress + 0xF5CBA0);
-	Nier::isInAMenu = (DWORD*)(Nier::moduleBaseAddress + 0x1414240);
+	Nier::pdIsWorldLoaded = (DWORD*)(Nier::moduleBaseAddress + 0xF5CBA0);
+	Nier::pdIsInAMenu = (DWORD*)(Nier::moduleBaseAddress + 0x1414240);
 
 	// Set all the indexes as empty
 	Nier::chipsListIndexes.fill({TRUE, FALSE, -1});
@@ -210,6 +210,24 @@ void Nier::removeNewStatusFromChip(ChipWrapper* chip) {
 		chip->chipsListIndex->isNew = FALSE;
 		chip->status &= ~Chip::Status_New;
 	}
+}
+
+void Nier::resetChipsList() {
+	if (Nier::pChips != nullptr)
+	{
+		Nier::updateChipsCount((PVOID)Nier::pChips);
+		Nier::updateChipsListAndCount();
+		Nier::removeNewStatusFromChips();
+		Nier::isChipsListDirty = TRUE;
+	}
+}
+
+BOOL Nier::isInAMenu() {
+	return *pdIsInAMenu;
+}
+
+BOOL Nier::isWorldLoaded() {
+	return pdIsWorldLoaded != NULL && *pdIsWorldLoaded;
 }
 
 BOOL Nier::isAutoDeleteActive()

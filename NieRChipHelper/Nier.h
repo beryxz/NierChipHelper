@@ -79,9 +79,9 @@ public:
 	static Chips* pChips; // pointer to chips counters and inventory location
 	static DWORD dChipsCount;
 
-	// ==== Status variables ====
-	static DWORD* isWorldLoaded;
-	static DWORD* isInAMenu;
+	// ==== Status checks ====
+	static BOOL isInAMenu();
+	static BOOL isWorldLoaded();
 
 	static uintptr_t moduleBaseAddress;
 
@@ -111,6 +111,7 @@ public:
 	static void updateChipsListAndCount();
 	static void removeNewStatusFromChip(ChipWrapper* chip);
 	static void removeNewStatusFromChips();
+	static void resetChipsList();
 
 	static void toggleAutoDelete();
 	static BOOL isAutoDeleteActive();
@@ -131,5 +132,9 @@ private:
 
 	// ==== On-Screen Display ====
 	static BOOL bOSD;
+
+	// ==== Status variables ====
+	static DWORD* pdIsInAMenu;
+	static DWORD* pdIsWorldLoaded;
 
 };

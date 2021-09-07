@@ -58,6 +58,8 @@ void Hook::initialize()
 	while (!g_bInitialized) {
 		Sleep(1000);
 	}
+
+	this->isInitialized = TRUE;
 }
 
 void Hook::unhook() {
@@ -89,6 +91,8 @@ void Hook::terminate()
 	g_pContext->Release();
 	g_pSwapChain->Release();
 	g_pRenderTargetView->Release();
+
+	this->isInitialized = FALSE;
 }
 
 LRESULT CALLBACK Hook::DXGIMsgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

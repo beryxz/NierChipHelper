@@ -65,6 +65,8 @@ public:
 	void initialize();
 	void terminate();
 
+	BOOL isInitialized = FALSE;
+
 	// Dear ImGui functions
 	static LRESULT CALLBACK DXGIMsgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
