@@ -20,6 +20,11 @@ Therefore, this array is used to keep track of empty spots, to be able to mark n
 */
 std::array<Nier::ChipsListIndex, Nier::dMaxStorableChipCount> Nier::chipsListIndexes;
 std::array<Nier::ChipWrapper, Nier::dMaxStorableChipCount> Nier::chipsList{}; // Local copy of pointers to chips, used for sorting the list
+/*
+A mutex is required since the chipsList array could be read/modified by both: the Dear Imgui render function (called by the DirectX thread);
+and in the main loop inside mainFunction.
+*/
+std::mutex Nier::mtxChipsList;
 
 uintptr_t Nier::moduleBaseAddress;
 void (*Nier::updateChipsCount)(void* pChipsBaseAddr);

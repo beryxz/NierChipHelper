@@ -48,6 +48,8 @@ void osd(ImDrawList* drawlist) {
 }
 
 void customImguiDrawMenu() {
+	Nier::mtxChipsList.lock();
+
 	ImGui::Text("%d/%d chips in inventory", Nier::dChipsCount, Nier::dMaxChipCount);
 
 	ImGui::Text("[%c] Chips count OSD:", Nier::isOSDActive() ? 'X' : ' ');
@@ -234,6 +236,8 @@ void customImguiDrawMenu() {
 
 		ImGui::EndTable();
 	}
+
+	Nier::mtxChipsList.unlock();
 }
 
 // main logic is in this separate function so to be able to use smart pointers
@@ -267,6 +271,8 @@ void mainFunction(HMODULE hModule) {
 		// If number of chips changed, update the local chips array copy
 		// if totChips == 0, gamesave has not been loaded yet.
 		if (Nier::pChips && Nier::pChips->totChips != 0 && Nier::dChipsCount != Nier::pChips->totChips) {
+			Nier::mtxChipsList.lock();
+			
 			/*
 			Edge case (because of a BUG?):
 			When fusing chips, the first time you fuse chips, the in-game chips counter is decreased by 2 instead of only 1.
@@ -280,6 +286,8 @@ void mainFunction(HMODULE hModule) {
 			}
 			
 			Nier::updateChipsListAndCount();
+
+			Nier::mtxChipsList.unlock();
 		}
 
 		if (GetAsyncKeyState(VK_F3) & 1) {

@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <string>
 #include <unordered_map>
+#include <mutex>
 
 #include "imgui.h"
 
@@ -95,6 +96,11 @@ public:
 	static BOOL isChipsListDirty;
 	static int curShownStatusIndex; // Index of the filter type applied to the chips table
 	static std::array<ChipWrapper, dMaxStorableChipCount> chipsList; // Local copy of pointers to chips, used for sorting the list
+	/*
+		A mutex is required since the chipsList array could be read/modified by both: the Dear Imgui render function (called by the DirectX thread);
+		and in the main loop inside mainFunction.
+	*/
+	static std::mutex mtxChipsList;
 
 	// ==== In-game function pointers ====
 	static void (*updateChipsCount)(void* pChipsBaseAddr);
