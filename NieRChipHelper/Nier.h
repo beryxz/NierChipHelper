@@ -63,9 +63,9 @@ public:
 	*/
 	struct ChipWrapper {
 		ChipItem* item;
-		Chip::Type type;
+		const Chip::Type* type;
+		const Chip::Level* level;
 		DWORD status;
-		Chip::Level level;
 		ChipsListIndex* chipsListIndex;
 	};
 

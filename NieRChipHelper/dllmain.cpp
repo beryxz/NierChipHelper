@@ -109,7 +109,7 @@ void customImguiDrawMenu() {
 						switch (sort_spec->ColumnIndex)
 						{
 						case 0: // Name
-							delta = a.type.name.compare(b.type.name);
+							delta = a.type->name.compare(b.type->name);
 							break;
 						case 1: // Level
 							delta = (a.item->level - b.item->level);
@@ -145,12 +145,9 @@ void customImguiDrawMenu() {
 			ImGui::PushID(row);
 			ImGui::TableNextRow();
 
-			const Chip::Level* cl = &c.level;
-			const Chip::Type* ct = &c.type;
-
 			// Set color based on chip category
 			ImU32 row_bg_color = NULL;
-			switch (ct->category) {
+			switch (c.type->category) {
 			case Chip::Category::ATTACK:
 				row_bg_color = ImGui::GetColorU32(ImVec4(0.718f, 0.600f, 0.494f, 0.7f));
 				break;
@@ -176,7 +173,7 @@ void customImguiDrawMenu() {
 				char buf[64];
 				switch (column) {
 				case 0:
-					sprintf_s(buf, "%s%s", ct->name.c_str(), c.item->weight == cl->diamondRank ? " *" : "");
+					sprintf_s(buf, "%s%s", c.type->name.c_str(), c.item->weight == c.level->diamondRank ? " *" : "");
 					ImGui::TextUnformatted(buf);
 					break;
 				case 1:

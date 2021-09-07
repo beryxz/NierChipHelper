@@ -163,13 +163,13 @@ void Nier::updateChipsListAndCount() {
 				}
 
 				chipsList[i].item = c;
-				chipsList[i].type = Nier::chipsTypeTable.at(c->type);
-				chipsList[i].level = Nier::chipsLevelsTable.at(c->level);
+				chipsList[i].type = &Nier::chipsTypeTable.at(c->type);
+				chipsList[i].level = &Nier::chipsLevelsTable.at(c->level);
 				chipsList[i].status = Chip::Status_None;
 				chipsList[i].chipsListIndex = &chipsListIndexes[row];
 
 				// Trash status
-				if (c->weight > chipsList[i].level.maxWorthRank)
+				if (c->weight > chipsList[i].level->maxWorthRank)
 					chipsList[i].status |= Chip::Status_Trash;
 				// New status
 				if (chipsListIndexes[row].isNew)
