@@ -119,7 +119,7 @@ Nier::Nier()
 	Nier::pChips = (Chips*)(Nier::moduleBaseAddress + 0xF5D0C0);
 	Nier::updateChipsCount = (void (*)(void*))(PVOID)(Nier::moduleBaseAddress + 0x7D5020);
 
-	Nier::pdIsWorldLoaded = (DWORD*)(Nier::moduleBaseAddress + 0xF5CBA0);
+	Nier::pdIsWorldLoaded = (DWORD*)(Nier::moduleBaseAddress + 0x1268910);
 	Nier::pdIsInAMenu = (DWORD*)(Nier::moduleBaseAddress + 0x1414240);
 
 	// Set all the indexes as empty

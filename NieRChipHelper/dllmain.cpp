@@ -49,7 +49,11 @@ void osd(ImDrawList* drawlist) {
 
 void customImguiDrawMenu() {
 	// don't show the inventory if there's nothing fully loaded
-	if (!Nier::isWorldLoaded()) return;
+	if (!Nier::isWorldLoaded())
+	{
+		ImGui::Text("Waiting for world to be loaded...");
+		return;
+	}
 
 	Nier::mtxChipsList.lock();
 
